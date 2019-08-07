@@ -199,6 +199,14 @@
           </execution>
         </executions>
       </plugin>
+      <!--编译期间跳过checkstyle检查-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>
