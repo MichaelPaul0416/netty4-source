@@ -463,7 +463,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     } finally {
                         // Ensure we always run tasks.
                         final long ioTime = System.nanoTime() - ioStartTime;
-                        runAllTasks(ioTime * (100 - ioRatio) / ioRatio);
+                        runAllTasks(ioTime * (100 - ioRatio) / ioRatio);//处理的其实就是当前EventLoop持有的LinkedBlockingQueue
                     }
                 }
             } catch (Throwable t) {
@@ -577,7 +577,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             // See https://github.com/netty/netty/issues/2363
             selectedKeys.keys[i] = null;
 
-            final Object a = k.attachment();
+            final Object a = k.attachment();//如果是NioServerSocketChannel的事件的话，那么这个返回的就是NioServerSocketChannel,否则的话就是NioSocketChannel[Nio的情况下]
 
             if (a instanceof AbstractNioChannel) {
                 processSelectedKey(k, (AbstractNioChannel) a);
@@ -599,7 +599,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     }
 
     private void processSelectedKey(SelectionKey k, AbstractNioChannel ch) {//server调用时，ch一般是channel方法注册的class实例，此处为NioServerSocketChannel
-        final AbstractNioChannel.NioUnsafe unsafe = ch.unsafe();//NioServerSocketChannel --> AbstractMessageUnsafe
+        final AbstractNioChannel.NioUnsafe unsafe = ch.unsafe();//NioServerSocketChannel --> AbstractMessageUnsafe|NioSocketChannel --> AbstractNioByteChannel
         if (!k.isValid()) {
             final EventLoop eventLoop;
             try {

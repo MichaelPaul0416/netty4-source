@@ -40,6 +40,8 @@ public class TelnetServerInitializer extends ChannelInitializer<SocketChannel> {
         this.sslCtx = sslCtx;
     }
 
+//    private static final TipsHandler tipsHandler = new TipsHandler();
+
     @Override
     public void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
@@ -55,7 +57,10 @@ public class TelnetServerInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast(ENCODER);
 
         //add tip for check ChannelHandler#handlerAdded
+        //如果TipsHandler类没有被@Shareable注解修饰，那么就老实点每次都new一个实例对象
         pipeline.addLast(new TipsHandler());
+        //如果TipsHandler类被@Shareable修饰了，那么可以使用一个全局的静态变量
+//        pipeline.addLast(tipsHandler);
         // and then business logic.
         pipeline.addLast(SERVER_HANDLER);
     }

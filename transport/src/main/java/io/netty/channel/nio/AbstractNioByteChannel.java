@@ -135,7 +135,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
                 clearReadPending();
                 return;
             }
-            final ChannelPipeline pipeline = pipeline();
+            final ChannelPipeline pipeline = pipeline();//这个Pipeline是client与server建立连接之后的ChannelPipeline，不同于server启动的时候的ChannelPipeline
             final ByteBufAllocator allocator = config.getAllocator();
             final RecvByteBufAllocator.Handle allocHandle = recvBufAllocHandle();//委托给AdaptiveRecvByteBufAllocator#newHandler --> HandlerImpl
             allocHandle.reset(config);

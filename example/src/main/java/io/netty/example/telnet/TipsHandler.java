@@ -1,5 +1,6 @@
 package io.netty.example.telnet;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
@@ -9,6 +10,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
  * @Description:
  * @Resource:
  */
+//@ChannelHandler.Sharable
 public class TipsHandler extends SimpleChannelInboundHandler<String> {
 
     @Override
