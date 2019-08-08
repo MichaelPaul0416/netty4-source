@@ -769,14 +769,14 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     }
 
     @Override
-    public void execute(Runnable task) {
+    public void execute(Runnable task) {//如果是server启动的时候，将channel进行register的时候，此时线程是main线程
         if (task == null) {
             throw new NullPointerException("task");
         }
 
         boolean inEventLoop = inEventLoop();
         addTask(task);
-        if (!inEventLoop) {
+        if (!inEventLoop) {//执行当前execute方法的线程不是这个EventLoop持有的线程，那就
             startThread();
             if (isShutdown() && removeTask(task)) {
                 reject();
@@ -883,7 +883,9 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
     private void doStartThread() {
         assert thread == null;
-        executor.execute(new Runnable() {//这个executor其实就是boss group中的EventExecutor
+        //这个executor --> ThreadPerTaskExecutor 实现了jdk的Executor接口，内部关联了ThreadFactory
+        //调用的方法还是jdk的Executor#execute，到这里其实就相当于真的交给Executor接口的netty实现的线程池去执行
+        executor.execute(new Runnable() {
             @Override
             public void run() {
                 thread = Thread.currentThread();

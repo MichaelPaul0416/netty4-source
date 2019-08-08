@@ -476,6 +476,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 register0(promise);
             } else {
                 try {
+                    //boss group中boss线程的task，此时被加入到LinkedBlockingQueue
                     eventLoop.execute(new Runnable() {//将runnable封装为task，提交到这个EventLoop持有的阻塞队列中，等待被执行
                         @Override
                         public void run() {

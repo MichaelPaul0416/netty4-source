@@ -294,7 +294,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         } else {
             // Registration future is almost always fulfilled already, but just in case it's not.
             final PendingRegistrationPromise promise = new PendingRegistrationPromise(channel);
-            regFuture.addListener(new ChannelFutureListener() {
+            regFuture.addListener(new ChannelFutureListener() {//如果还没register完毕的话，那么将bind事件添加到listener中，由listener的回调函数去执行bind操作
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {
                     Throwable cause = future.cause();
@@ -361,7 +361,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
 
         // This method is invoked before channelRegistered() is triggered.  Give user handlers a chance to set up
         // the pipeline in its channelRegistered() implementation.
-        channel.eventLoop().execute(new Runnable() {
+        channel.eventLoop().execute(new Runnable() {//与server注册时，调用register方法的EventLoop是同一个，都是boss线程
             @Override
             public void run() {
                 if (regFuture.isSuccess()) {
