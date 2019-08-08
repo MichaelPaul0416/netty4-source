@@ -599,11 +599,11 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     }
 
     private void processSelectedKey(SelectionKey k, AbstractNioChannel ch) {//server调用时，ch一般是channel方法注册的class实例，此处为NioServerSocketChannel
-        final AbstractNioChannel.NioUnsafe unsafe = ch.unsafe();
+        final AbstractNioChannel.NioUnsafe unsafe = ch.unsafe();//NioServerSocketChannel --> AbstractMessageUnsafe
         if (!k.isValid()) {
             final EventLoop eventLoop;
             try {
-                eventLoop = ch.eventLoop();
+                eventLoop = ch.eventLoop();//boss线程
             } catch (Throwable ignored) {
                 // If the channel implementation throws an exception because there is no event loop, we ignore this
                 // because we are only trying to determine if ch is registered to this event loop and thus has authority

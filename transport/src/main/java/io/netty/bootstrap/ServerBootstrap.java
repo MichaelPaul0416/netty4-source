@@ -180,7 +180,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
                     pipeline.addLast(handler);//ServerBootstrap#handler()指定的ChannelHandler
                 }
 
-                ch.eventLoop().execute(new Runnable() {
+                ch.eventLoop().execute(new Runnable() {//这里需要提交执行而不是同步执行是以为server端此时可能只是register完毕，还没bind完毕
                     @Override
                     public void run() {
                         pipeline.addLast(new ServerBootstrapAcceptor(
@@ -248,7 +248,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
             final Channel child = (Channel) msg;//类型一般是与客户端的连接，nio的话一般就是NioSocketChannel
             //执行了下面的代码以后，与客户端的ChannelPipeline中AbstractChannelHandlerContext的双向链表就是head <-> ChannelInitializer <-> tail
-            child.pipeline().addLast(childHandler);//这里的childHandler就是在ServerBootStrap中匿名内部类ChannelInitializer
+            child.pipeline().addLast(childHandler);//这里的childHandler就是在ServerBootStrap中匿名内部类ChannelInitializer,将ChannelInitializer-->AbstractChannelHandlerContext-->PendingHandlerCallback，进入callback的单向队列
 
             setChannelOptions(child, childOptions, logger);
 
@@ -257,7 +257,8 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             }
 
             try {
-                //这里调用了childGroup,真正register的地方其实会判断eventloop.inEventLoop,如果返回false的话，其实就会异步提交执行，所以这里的register对于ServerBootstrapAcceptor来说，其实是异步的
+                //这里调用了childGroup,真正register的地方其实会判断eventloop.inEventLoop,如果返回false的话
+                //其实就会异步提交执行，所以这里的register对于ServerBootstrapAcceptor来说，其实是异步的
                 childGroup.register(child).addListener(new ChannelFutureListener() {//在这里注意，调用的是childGroup,也就是在启动类里面配置的NioEventLoopGroup，也就是group方法的第二个参数，worker线程池
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {

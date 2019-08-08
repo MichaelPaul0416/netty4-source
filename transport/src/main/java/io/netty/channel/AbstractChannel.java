@@ -472,7 +472,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
             AbstractChannel.this.eventLoop = eventLoop;//实现的执行者，可以理解为一个thread，本质上是一个EventExecutor
 
-            if (eventLoop.inEventLoop()) {//一般来说，当前线程是main线程，如果是server端的话，那么eventLoop一般是boss线程池中的线程，负责监听连接
+            if (eventLoop.inEventLoop()) {//一般来说，当前线程是main线程，如果是server端的话，那么eventLoop一般是boss线程池中的线程，负责监听连接;还有一种情况就是server端将与client的SocketChannel注册，此时eventLoop其实是worker，而当前线程是boss
                 register0(promise);
             } else {
                 try {
@@ -480,7 +480,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                     eventLoop.execute(new Runnable() {//将runnable封装为task，提交到这个EventLoop持有的阻塞队列中，等待被执行
                         @Override
                         public void run() {
-                            register0(promise);
+                            register0(promise);//如果是client建立连接的话，那么boss线程会在这里将任务提交给worker线程池，由worker线程去执行register0
                         }
                     });
                 } catch (Throwable t) {

@@ -345,7 +345,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
         final Object m = next.pipeline.touch(ObjectUtil.checkNotNull(msg, "msg"), next);//有点类似linux里面的touch命令，就是摸一下，假如为0，那就为1，假如已存在，就不做任何事情
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
-            next.invokeChannelRead(m);//first next value is HeadContext and msg type[NioServerSocketChannel] is NioSocketChannel;
+            next.invokeChannelRead(m);//first next value is HeadContext and msg type is NioSocketChannel;
         } else {
             executor.execute(new Runnable() {
                 @Override
