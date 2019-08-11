@@ -1393,7 +1393,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         @Override
         public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-            unsafe.write(msg, promise);
+            unsafe.write(msg, promise);//在执行完一系列的ChannelOutboudHandler#write方法之后,最后会到HeadContext#write里面,而在这里,委托给了pipeline.unsafe()
         }
 
         @Override

@@ -350,7 +350,7 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
     @Override
     protected int doWriteBytes(ByteBuf buf) throws Exception {
         final int expectedWrittenBytes = buf.readableBytes();
-        return buf.readBytes(javaChannel(), expectedWrittenBytes);
+        return buf.readBytes(javaChannel(), expectedWrittenBytes);//委托给各自的子类实现,从bytebuf中读取数据,写入的到javaChannel()返回的通道里面,也就是jdk的SocketChannel
     }
 
     @Override
@@ -402,9 +402,9 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
                     // to check if the total size of all the buffers is non-zero.
                     ByteBuffer buffer = nioBuffers[0];
                     int attemptedBytes = buffer.remaining();
-                    final int localWrittenBytes = ch.write(buffer);
+                    final int localWrittenBytes = ch.write(buffer);//直接调用jdk的NioSocketChannel发送数据
                     if (localWrittenBytes <= 0) {
-                        incompleteWrite(true);
+                        incompleteWrite(true);//fire event and callback
                         return;
                     }
                     adjustMaxBytesPerGatheringWrite(attemptedBytes, localWrittenBytes, maxBytesPerGatheringWrite);

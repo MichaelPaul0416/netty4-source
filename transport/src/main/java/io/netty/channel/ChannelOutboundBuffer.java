@@ -110,8 +110,8 @@ public final class ChannelOutboundBuffer {
      * the message was written.
      */
     public void addMessage(Object msg, int size, ChannelPromise promise) {
-        Entry entry = Entry.newInstance(msg, size, total(msg), promise);
-        if (tailEntry == null) {
+        Entry entry = Entry.newInstance(msg, size, total(msg), promise);//wrapper bytes,length,Promise
+        if (tailEntry == null) {//指针为空操作
             flushedEntry = null;
         } else {
             Entry tail = tailEntry;
@@ -137,7 +137,7 @@ public final class ChannelOutboundBuffer {
         //
         // See https://github.com/netty/netty/issues/2577
         Entry entry = unflushedEntry;
-        if (entry != null) {
+        if (entry != null) {//说明此时待发送的列表中是有数据的
             if (flushedEntry == null) {
                 // there is no flushedEntry yet, so start with the entry
                 flushedEntry = entry;
@@ -228,7 +228,7 @@ public final class ChannelOutboundBuffer {
         assert e != null;
         ChannelPromise p = e.promise;
         if (p instanceof ChannelProgressivePromise) {
-            long progress = e.progress + amount;
+            long progress = e.progress + amount;//add send data size
             e.progress = progress;
             ((ChannelProgressivePromise) p).tryProgress(progress, e.total);
         }
@@ -302,7 +302,7 @@ public final class ChannelOutboundBuffer {
     }
 
     private void removeEntry(Entry e) {
-        if (-- flushed == 0) {
+        if (-- flushed == 0) {//待发送的数据发送完毕
             // processed everything
             flushedEntry = null;
             if (e == tailEntry) {
@@ -803,7 +803,7 @@ public final class ChannelOutboundBuffer {
         }
 
         static Entry newInstance(Object msg, int size, long total, ChannelPromise promise) {
-            Entry entry = RECYCLER.get();
+            Entry entry = RECYCLER.get();//threadLocal-->Stack-->DefaultHandle-->entry
             entry.msg = msg;
             entry.pendingSize = size + CHANNEL_OUTBOUND_BUFFER_ENTRY_OVERHEAD;
             entry.total = total;

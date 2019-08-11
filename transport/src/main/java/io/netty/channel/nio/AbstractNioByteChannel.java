@@ -201,7 +201,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
      * @throws Exception if an I/O exception occurs during write.
      */
     protected final int doWrite0(ChannelOutboundBuffer in) throws Exception {
-        Object msg = in.current();
+        Object msg = in.current();//之前已经调用过ChannelOutboundBuffer#addFlush方法,flush指针已经移动到待发送列表的头部,这里直接返回头部entry的value
         if (msg == null) {
             // Directly return here so incompleteWrite(...) is not called.
             return 0;
@@ -217,11 +217,11 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
                 return 0;
             }
 
-            final int localFlushedAmount = doWriteBytes(buf);
+            final int localFlushedAmount = doWriteBytes(buf);//size of sending data
             if (localFlushedAmount > 0) {
                 in.progress(localFlushedAmount);
                 if (!buf.isReadable()) {
-                    in.remove();
+                    in.remove();//移动Entry的指针,并且释放ByteBuf的引用
                 }
                 return 1;
             }
@@ -248,7 +248,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
     }
 
     @Override
-    protected void doWrite(ChannelOutboundBuffer in) throws Exception {
+    protected void doWrite(ChannelOutboundBuffer in) throws Exception {//client send message
         int writeSpinCount = config().getWriteSpinCount();
         do {
             Object msg = in.current();

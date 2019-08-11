@@ -885,8 +885,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 ReferenceCountUtil.release(msg);
                 return;
             }
-
-            outboundBuffer.addMessage(msg, size, promise);//写到ChannelOutboundBuffer$Entry中，Entry有一个指向nextEntry的指针，形成单向链表；同时，每个Entry内部还维护了一个ByteBuffer对象，作为发送的数据
+            //AbstractChannelHandlerContext-->AbstractUnsafe-->ChannelOutboundBuffer
+            //写到ChannelOutboundBuffer$Entry中，Entry有一个指向nextEntry的指针，形成单向链表；同时，每个Entry内部还维护了一个ByteBuffer对象，作为发送的数据
+            outboundBuffer.addMessage(msg, size, promise);
         }
 
         @Override
@@ -898,7 +899,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 return;
             }
 
-            outboundBuffer.addFlush();
+            outboundBuffer.addFlush();//检查从flushed指针到tail指针中的所有entry,是否都有效(未取消发送),并且将unflushed-->null
             flush0();
         }
 
@@ -917,7 +918,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             inFlush0 = true;
 
             // Mark all pending write requests as failure if the channel is inactive.
-            if (!isActive()) {
+            if (!isActive()) {//channelPipeline is not active
                 try {
                     if (isOpen()) {
                         outboundBuffer.failFlushed(FLUSH0_NOT_YET_CONNECTED_EXCEPTION, true);

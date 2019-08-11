@@ -738,7 +738,9 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
 
     private void invokeWrite0(Object msg, ChannelPromise promise) {
         try {
-            ((ChannelOutboundHandler) handler()).write(this, msg, promise);//最终委托给HeadContext，调用其中的write方法-->AbstractChannel$AbstractUnsafe#write
+            //最终委托给HeadContext，调用其中的write方法-->AbstractChannel$AbstractUnsafe#write
+            //一般来说最先被调用到的除了自定义的ChannelOutboundHandler之外就是编码器xxxEncoder
+            ((ChannelOutboundHandler) handler()).write(this, msg, promise);
         } catch (Throwable t) {
             notifyOutboundHandlerException(t, promise);
         }
@@ -788,7 +790,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
             throw new NullPointerException("msg");
         }
 
-        if (isNotValidPromise(promise, true)) {
+        if (isNotValidPromise(promise, true)) {//done,channel是否同一个,allowVoidPromise...
             ReferenceCountUtil.release(msg);
             // cancelled
             return promise;
@@ -800,8 +802,8 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
     }
 
     private void invokeWriteAndFlush(Object msg, ChannelPromise promise) {
-        if (invokeHandler()) {
-            invokeWrite0(msg, promise);
+        if (invokeHandler()) {//ChannelHandler state
+            invokeWrite0(msg, promise);//把ByteBuf加入到ChannelOutboundBuffer内部维护的单向链表中,node的类型为Entry
             invokeFlush0();
         } else {
             writeAndFlush(msg, promise);
@@ -812,6 +814,8 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
         AbstractChannelHandlerContext next = findContextOutbound();//从TailContext往前找，返回ChannelOutboundHandler
         final Object m = pipeline.touch(msg, next);//linux touch，没有引用的话+1
         EventExecutor executor = next.executor();
+        //开发者可能在ChannelHandler中自定义了线程池,然后线程池中的线程调用了AbstractChannelHandlerContext#writeAndFlush方法,所以这里就需要校验
+        //如果是用户线程的话,在这里异步提交给netty的worker线程,然后直接返回
         if (executor.inEventLoop()) {
             if (flush) {
                 next.invokeWriteAndFlush(m, promise);
@@ -837,7 +841,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
 
     @Override
     public ChannelFuture writeAndFlush(Object msg) {
-        return writeAndFlush(msg, newPromise());
+        return writeAndFlush(msg, newPromise());//write消息的时候需要凭证,也就是DefaultChannelPromise[ChannelFuture]
     }
 
     private static void notifyOutboundHandlerException(Throwable cause, ChannelPromise promise) {
