@@ -234,7 +234,7 @@ public class DelimiterBasedFrameDecoder extends ByteToMessageDecoder {
         // Try all delimiters and choose the delimiter which yields the shortest frame.
         int minFrameLength = Integer.MAX_VALUE;
         ByteBuf minDelim = null;
-        for (ByteBuf delim: delimiters) {
+        for (ByteBuf delim: delimiters) {//调用者指定的分割符
             int frameLength = indexOf(buffer, delim);
             if (frameLength >= 0 && frameLength < minFrameLength) {
                 minFrameLength = frameLength;
