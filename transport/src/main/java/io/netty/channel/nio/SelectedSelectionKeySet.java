@@ -93,7 +93,7 @@ final class SelectedSelectionKeySet extends AbstractSet<SelectionKey> {
         size = 0;
     }
 
-    private void increaseCapacity() {
+    private void increaseCapacity() {//简单的扩容，容量扩展为原来的2倍，同时，进行数组复制
         SelectionKey[] newKeys = new SelectionKey[keys.length << 1];
         System.arraycopy(keys, 0, newKeys, 0, size);
         keys = newKeys;

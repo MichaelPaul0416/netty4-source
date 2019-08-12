@@ -48,7 +48,7 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
      * {@link SelectorProvider} which is returned by {@link SelectorProvider#provider()}.
      */
     public NioEventLoopGroup(int nThreads) {
-        this(nThreads, (Executor) null);
+        this(nThreads, (Executor) null);//Executor为JDK提供的Executor接口，不是netty自身的
     }
 
     /**
@@ -79,12 +79,12 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
 
     public NioEventLoopGroup(
             int nThreads, Executor executor, final SelectorProvider selectorProvider) {
-        this(nThreads, executor, selectorProvider, DefaultSelectStrategyFactory.INSTANCE);
+        this(nThreads, executor, selectorProvider, DefaultSelectStrategyFactory.INSTANCE);//新增一个SelectStrategyFactory的接口实现
     }
 
     public NioEventLoopGroup(int nThreads, Executor executor, final SelectorProvider selectorProvider,
                              final SelectStrategyFactory selectStrategyFactory) {
-        super(nThreads, executor, selectorProvider, selectStrategyFactory, RejectedExecutionHandlers.reject());
+        super(nThreads, executor, selectorProvider, selectStrategyFactory, RejectedExecutionHandlers.reject());//和ThreadPoolExecutor类似，当线程池的工作线程满了之后，需要一个拒绝策略
     }
 
     public NioEventLoopGroup(int nThreads, Executor executor, EventExecutorChooserFactory chooserFactory,

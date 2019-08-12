@@ -89,7 +89,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             } finally {
                 if (!success) {
                     for (int j = 0; j < i; j ++) {
-                        children[j].shutdownGracefully();
+                        children[j].shutdownGracefully();//如果到第i个EventLoop创建失败了，那么关闭从开始到现在的所有EventLoop
                     }
 
                     for (int j = 0; j < i; j ++) {

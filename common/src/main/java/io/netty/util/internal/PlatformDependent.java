@@ -876,7 +876,7 @@ public final class PlatformDependent {
         }
 
         static <T> Queue<T> newMpscQueue() {
-            return USE_MPSC_CHUNKED_ARRAY_QUEUE ? new MpscUnboundedArrayQueue<T>(MPSC_CHUNK_SIZE)
+            return USE_MPSC_CHUNKED_ARRAY_QUEUE ? new MpscUnboundedArrayQueue<T>(MPSC_CHUNK_SIZE)//无锁化的队列实现，多个producer一个consumer
                                                 : new MpscUnboundedAtomicArrayQueue<T>(MPSC_CHUNK_SIZE);
         }
     }

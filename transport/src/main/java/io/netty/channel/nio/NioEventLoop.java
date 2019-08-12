@@ -139,13 +139,13 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             throw new NullPointerException("selectStrategy");
         }
         provider = selectorProvider;
-        final SelectorTuple selectorTuple = openSelector();
-        selector = selectorTuple.selector;
+        final SelectorTuple selectorTuple = openSelector();//SelectorProvider-->Selector-->SelectorTuple
+        selector = selectorTuple.selector;//jdk的selector
         unwrappedSelector = selectorTuple.unwrappedSelector;
         selectStrategy = strategy;
     }
 
-    private static final class SelectorTuple {
+    private static final class SelectorTuple {//Jdk的Selector的封装
         final Selector unwrappedSelector;
         final Selector selector;
 
@@ -172,7 +172,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             return new SelectorTuple(unwrappedSelector);
         }
 
-        Object maybeSelectorImplClass = AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        Object maybeSelectorImplClass = AccessController.doPrivileged(new PrivilegedAction<Object>() {//Class对象
             @Override
             public Object run() {
                 try {
@@ -188,7 +188,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
         if (!(maybeSelectorImplClass instanceof Class) ||
             // ensure the current selector implementation is what we can instrument.
-            !((Class<?>) maybeSelectorImplClass).isAssignableFrom(unwrappedSelector.getClass())) {
+            !((Class<?>) maybeSelectorImplClass).isAssignableFrom(unwrappedSelector.getClass())) {//maybeSelectorImplClass代表的Class是方法入参的Class的类型或者是它的超类
             if (maybeSelectorImplClass instanceof Throwable) {
                 Throwable t = (Throwable) maybeSelectorImplClass;
                 logger.trace("failed to instrument a special java.util.Set into: {}", unwrappedSelector, t);

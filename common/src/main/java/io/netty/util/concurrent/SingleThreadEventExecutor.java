@@ -158,11 +158,15 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     protected SingleThreadEventExecutor(EventExecutorGroup parent, Executor executor,
                                         boolean addTaskWakesUp, int maxPendingTasks,
                                         RejectedExecutionHandler rejectedHandler) {
-        super(parent);
+        super(parent);//parent参数明确声明，构造出的NioEventLoop是归属于那个NioEventLoopGroup的（以Nio为例）
         this.addTaskWakesUp = addTaskWakesUp;
         this.maxPendingTasks = Math.max(16, maxPendingTasks);
-        this.executor = ObjectUtil.checkNotNull(executor, "executor");
-        taskQueue = newTaskQueue(this.maxPendingTasks);
+        this.executor = ObjectUtil.checkNotNull(executor, "executor");//真正干活的线程，来自于ThreadPerTaskExecutor中的ThreadFactory
+        /**
+         * 抽象子类SingleThreadEventLoop#newTaskQueue返回的是jdk的LinkedBlokingQueue
+         * 但是NioEventLoop#newTaskQueue重写了这个方法，返回的是性能更优的MpscxxxxxArrayQueue，它是无锁队列，基于CAS，多个producer，一个consumer
+         */
+        taskQueue = newTaskQueue(this.maxPendingTasks);//jctools里面的无锁队列实现，多producer（针对多个线程执行EventExecutor#execut(Runnable)，一个consumer(就是EventLoop)）
         rejectedExecutionHandler = ObjectUtil.checkNotNull(rejectedHandler, "rejectedHandler");
     }
 
