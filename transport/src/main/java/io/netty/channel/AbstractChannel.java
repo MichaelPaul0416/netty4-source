@@ -81,7 +81,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     protected AbstractChannel(Channel parent) {
         this.parent = parent;
         id = newId();
-        unsafe = newUnsafe();
+        unsafe = newUnsafe();//server的话返回NioMessageUnsafe,server建立与client的话，返回NioByteUnsafe,这是个抽象方法，由各自的子类实现
         pipeline = newChannelPipeline();
     }
 

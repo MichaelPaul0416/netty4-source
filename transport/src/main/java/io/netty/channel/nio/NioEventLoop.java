@@ -603,7 +603,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         if (!k.isValid()) {
             final EventLoop eventLoop;
             try {
-                eventLoop = ch.eventLoop();//boss线程
+                eventLoop = ch.eventLoop();//boss线程或者是worker，看ch的具体类型
             } catch (Throwable ignored) {
                 // If the channel implementation throws an exception because there is no event loop, we ignore this
                 // because we are only trying to determine if ch is registered to this event loop and thus has authority
