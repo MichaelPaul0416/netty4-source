@@ -4,7 +4,6 @@ import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.MultithreadEventLoopGroup;
 import io.netty.channel.SingleThreadEventLoop;
-import io.netty.channel.nio.NioEventLoop;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +30,26 @@ public class NioEventLoopDemo {
             super(parent, threadFactory, addTaskWakesUp);
         }
 
+        //EventLoop中的每个worker干活的实体内容，也就是每个工作线程在这个方法里面循环
         @Override
         protected void run() {
             for (; ; ) {
+                //这里需要判断下，EventLoop中的状态是不是shutdown，如果是的话就需要return
+                //同时需要判断阻塞队列中是否还有任务，如果有任务的话需要等任务执行完毕
+                /**
+                 * SingleThreadEventExecutor的五种状态
+                 * ST_NOT_STARTED:1
+                 * ST_STARTED:2
+                 * ST_SHUTTING_DOWN:3
+                 * ST_SHUTDOWN:4
+                 * ST_TERMINATED:5
+                 */
+                if(isShuttingDown()){
+                    if(!hasTasks() && confirmShutdown()){
+                        return;
+                    }
+                }
+
                 Runnable runnable = takeTask();//SingleThreadEventExecutor中构造
                 if (runnable == null) {
                     continue;

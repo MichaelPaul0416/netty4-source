@@ -471,8 +471,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             }
             // Always handle shutdown even if the loop processing threw an exception.
             try {
-                if (isShuttingDown()) {
-                    closeAll();
+                if (isShuttingDown()) {//这里需要判断下NioEventLoop的生命周期（类似ThreadPoolExecutor的生命周期）--> 状态的更改是通过EventLoopGroup#shutdownGracefully提交
+                    closeAll();//close AbstractNioChannel
                     if (confirmShutdown()) {
                         return;
                     }

@@ -733,6 +733,8 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
         final long nanoTime = ScheduledFutureTask.nanoTime();
 
+        //gracefulShutdownTimeout:调用EventLoopGroup#shutdownGracefully相关方法时设定的时间
+        //如果线程池的状态是ST_SHUTDOWN或者说目前的时间-第一次调用confirmShutdown方法的时间>设定的超时时间
         if (isShutdown() || nanoTime - gracefulShutdownStartTime > gracefulShutdownTimeout) {
             return true;
         }
