@@ -736,6 +736,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
             //这个for是为了监视是否一致在空轮询
             for (;;) {
+                //currentTimeNanos在for刚进来的时候是初始时间，然后后来如果一次循环内没有事件发生，就会更新为本次select结束之后的时间
+                //然后回到这里，再次与之前算好的deadline做比较，看剩下的时间是否还足够，如果不够一次select的时间(这个时间必须大于0)，那么就直接跳出for
                 long timeoutMillis = (selectDeadLineNanos - currentTimeNanos + 500000L) / 1000000L;
                 if (timeoutMillis <= 0) {
                     if (selectCnt == 0) {
