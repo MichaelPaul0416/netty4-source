@@ -206,7 +206,7 @@ public abstract class AbstractScheduledEventExecutor extends AbstractEventExecut
         validateScheduled0(delay, unit);
 
         return schedule(new ScheduledFutureTask<Void>(
-                this, Executors.<Void>callable(command, null),
+                this, Executors.<Void>callable(command, null),//返回一个RunnableAdapter，从名字来看，就是一个适配器，将callable适配为runnable
                 ScheduledFutureTask.deadlineNanos(unit.toNanos(initialDelay)), -unit.toNanos(delay)));
     }
 

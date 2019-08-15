@@ -62,7 +62,7 @@ public abstract class AbstractEventExecutorGroup implements EventExecutorGroup {
 
     @Override
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
-        return next().scheduleWithFixedDelay(command, initialDelay, delay, unit);
+        return next().scheduleWithFixedDelay(command, initialDelay, delay, unit);//很明显，group只是一个委托者，最后的执行还是需要委托给group中的EventLoop去执行
     }
 
     @Override

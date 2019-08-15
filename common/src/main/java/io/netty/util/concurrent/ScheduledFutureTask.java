@@ -58,7 +58,7 @@ final class ScheduledFutureTask<V> extends PromiseTask<V> implements ScheduledFu
             AbstractScheduledEventExecutor executor,
             Callable<V> callable, long nanoTime, long period) {
 
-        super(executor, callable);
+        super(executor, callable);//指定这个延迟任务的执行者executor以及任务的具体内容callable
         if (period == 0) {
             throw new IllegalArgumentException("period: 0 (expected: != 0)");
         }

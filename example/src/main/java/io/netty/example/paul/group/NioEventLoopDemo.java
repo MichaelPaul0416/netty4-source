@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -44,8 +45,8 @@ public class NioEventLoopDemo {
                  * ST_SHUTDOWN:4
                  * ST_TERMINATED:5
                  */
-                if(isShuttingDown()){
-                    if(!hasTasks() && confirmShutdown()){
+                if (isShuttingDown()) {
+                    if (!hasTasks() && confirmShutdown()) {
                         return;
                     }
                 }
@@ -127,8 +128,39 @@ public class NioEventLoopDemo {
 
     public static void main(String[] args) {
 //        simpleEventLoopGroup();
+        scheduledTask();
+//        simpleEventLoop();
+    }
 
-        simpleEventLoop();
+    private static void scheduledTask() {
+        EventLoopGroup group = new NioEventLoopGroup(3);
+
+        //call in future after specific time
+        group.schedule(() -> {
+            logger.info("延迟任务开始执行...");
+        }, 1, TimeUnit.SECONDS);
+
+        //以一定的频率执行,通常来说是按照下面的配置，每4s执行一次
+        //但是当任务的执行时间>配置的频率的话，比如下面配置的任务执行时间是5s，但是间隔时间是4s
+        //那么任务的执行会变为每5s执行一次，周期=max(task.time,config time)
+        group.scheduleAtFixedRate(() -> {
+            logger.info("以一定频率执行的task...");
+            try {
+                TimeUnit.SECONDS.sleep(5);
+            } catch (InterruptedException e) {
+                logger.error("fixed rate error:{}",e.getMessage(),e);
+            }
+        }, 1, 4, TimeUnit.SECONDS);//每4s执行一次
+
+        //程序开始后1s执行，然后以后每3s执行一次：执行的周期=入参设置的延迟的时间(3s) + task执行的实现(5s)
+        group.scheduleWithFixedDelay(() -> {
+            logger.info("以一定的延迟间隔执行task...");
+            try {
+                TimeUnit.SECONDS.sleep(5);
+            } catch (InterruptedException e) {
+                logger.error("delay error:{}",e.getMessage(),e);
+            }
+        }, 1, 3, TimeUnit.SECONDS);
     }
 
     private static void simpleEventLoop() {
