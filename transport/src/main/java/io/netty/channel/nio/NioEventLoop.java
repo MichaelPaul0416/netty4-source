@@ -352,8 +352,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
         // Register all channels to the new Selector.
         int nChannels = 0;
-        for (SelectionKey key: oldSelector.keys()) {
-            Object a = key.attachment();
+        for (SelectionKey key: oldSelector.keys()) {//这个for的主要作用就是将旧的selector上的channel以及一些其他东西迁移到新的selector上
+            Object a = key.attachment();//NioServerSocketChannel|NioSocketChannel
             try {
                 if (!key.isValid() || key.channel().keyFor(newSelectorTuple.unwrappedSelector) != null) {
                     continue;
@@ -361,7 +361,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
                 int interestOps = key.interestOps();
                 key.cancel();
-                SelectionKey newKey = key.channel().register(newSelectorTuple.unwrappedSelector, interestOps, a);
+                SelectionKey newKey = key.channel().register(newSelectorTuple.unwrappedSelector, interestOps, a);//将旧的channel注册到新的selector上，并且附带感兴趣的事件和attachment
                 if (a instanceof AbstractNioChannel) {
                     // Update SelectionKey
                     ((AbstractNioChannel) a).selectionKey = newKey;
@@ -380,7 +380,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             }
         }
 
-        selector = newSelectorTuple.selector;
+        selector = newSelectorTuple.selector;//赋值给当前的selector
         unwrappedSelector = newSelectorTuple.unwrappedSelector;
 
         try {
@@ -732,8 +732,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         try {
             int selectCnt = 0;
             long currentTimeNanos = System.nanoTime();
-            long selectDeadLineNanos = currentTimeNanos + delayNanos(currentTimeNanos);
+            long selectDeadLineNanos = currentTimeNanos + delayNanos(currentTimeNanos);//本次select的deadline
 
+            //这个for是为了监视是否一致在空轮询
             for (;;) {
                 long timeoutMillis = (selectDeadLineNanos - currentTimeNanos + 500000L) / 1000000L;
                 if (timeoutMillis <= 0) {
@@ -748,7 +749,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 // Selector#wakeup. So we need to check task queue again before executing select operation.
                 // If we don't, the task might be pended until select operation was timed out.
                 // It might be pended until idle timeout if IdleStateHandler existed in pipeline.
-                if (hasTasks() && wakenUp.compareAndSet(false, true)) {
+                if (hasTasks() && wakenUp.compareAndSet(false, true)) {//hasTasks=true的话，代表当前的nio线程要去干活了，执行task，不要再在for里面干等了
                     selector.selectNow();
                     selectCnt = 1;
                     break;
@@ -757,14 +758,14 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 int selectedKeys = selector.select(timeoutMillis);//委托给jdk的Selector#select(timeout)去执行，返回就绪的SelectionKey的数目
                 selectCnt ++;
 
-                if (selectedKeys != 0 || oldWakenUp || wakenUp.get() || hasTasks() || hasScheduledTasks()) {
+                if (selectedKeys != 0 || oldWakenUp || wakenUp.get() || hasTasks() || hasScheduledTasks()) {//就绪的selectedKeys > 0，或者有task或者有定时任务，那就返回，去干活
                     // - Selected something,
                     // - waken up by user, or
                     // - the task queue has a pending task.
                     // - a scheduled task is ready for processing
                     break;
                 }
-                if (Thread.interrupted()) {
+                if (Thread.interrupted()) {//当前Nio线程是否是中断的，如果被中断的话，那么清除中断状态，既然都被中断了，那么就不要空轮询了，干活去把
                     // Thread was interrupted so reset selected keys and break so we not run into a busy loop.
                     // As this is most likely a bug in the handler of the user or it's client library we will
                     // also log it.
@@ -780,17 +781,21 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 }
 
                 long time = System.nanoTime();
+                //下面if的表达式其实可以转换成下面注释的样子，更加容易理解
+                //当前的时间(time)-开始的时间(currentTimeNanos)>=从现在到下次定时任务开始的时间间隔(timeoutMillis)
+                //也就是说，时间还有的多，放心select，即便这次是空轮询也没事
                 if (time - TimeUnit.MILLISECONDS.toNanos(timeoutMillis) >= currentTimeNanos) {
                     // timeoutMillis elapsed without anything selected.
                     selectCnt = 1;
                 } else if (SELECTOR_AUTO_REBUILD_THRESHOLD > 0 &&
-                        selectCnt >= SELECTOR_AUTO_REBUILD_THRESHOLD) {
+                        selectCnt >= SELECTOR_AUTO_REBUILD_THRESHOLD) {//io.netty.selectorAutoRebuildThreshold指定，默认值是512
                     // The selector returned prematurely many times in a row.
                     // Rebuild the selector to work around the problem.
                     logger.warn(
                             "Selector.select() returned prematurely {} times in a row; rebuilding Selector {}.",
                             selectCnt, selector);
-
+                    //走到这的话，条件就是：没有定时任务，没有task提交，也没有人唤醒，更加没有人中断，并且剩余的时间<到下次定时任务执行的时间的间隔
+                    //上述条件都满足，那么就可能是空轮询了，所以需要重新构建一个selector
                     rebuildSelector();
                     selector = this.selector;
 

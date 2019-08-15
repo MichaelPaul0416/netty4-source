@@ -441,10 +441,10 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     protected long delayNanos(long currentTimeNanos) {
         ScheduledFutureTask<?> scheduledTask = peekScheduledTask();
         if (scheduledTask == null) {
-            return SCHEDULE_PURGE_INTERVAL;
+            return SCHEDULE_PURGE_INTERVAL;//1s --> 纳秒表示
         }
 
-        return scheduledTask.delayNanos(currentTimeNanos);
+        return scheduledTask.delayNanos(currentTimeNanos);//返回0或者到下次定时任务执行的时候，剩余的时间
     }
 
     /**
