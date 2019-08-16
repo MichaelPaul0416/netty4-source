@@ -19,11 +19,11 @@ public class TimeServerHandler extends SimpleChannelInboundHandler<String> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
-        logger.info("receive:{}",msg);
+        logger.info("receive:{}", msg);
 
         String time = new SimpleDateFormat(TIME_FORMAT).format(new Date());
 
-        ctx.writeAndFlush(time + "$");
+        ctx.writeAndFlush(msg + time + "$");
     }
 
     @Override

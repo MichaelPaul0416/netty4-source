@@ -296,6 +296,7 @@
     <module>testsuite-shading</module>
     <module>microbench</module>
     <module>bom</module>
+      <module>netty-tools</module>
   </modules>
 
   <dependencyManagement>

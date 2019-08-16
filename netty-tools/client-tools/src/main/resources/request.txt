@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="GB2312"?>
+<MsgText>
+	<MsgHdr>
+		<ServiceNo>02</ServiceNo>
+		<FunctionNo>1004</FunctionNo>
+		<BankNo>904</BankNo>
+		<RequestNo>1120190813184310555</RequestNo>
+		<PackCount>1</PackCount>
+		<OwnPackNo>8001</OwnPackNo>
+		<CompanyCode/>
+		<UserCode>1131018</UserCode>
+		<Operator>90901005</Operator>
+		<Password/>
+		<TradeDate>20190813</TradeDate>
+		<TradeTime>184310565</TradeTime>
+		<FuncIndex>0</FuncIndex>
+		<CertID/>
+		<SelfBankNo>904</SelfBankNo>
+		<AccoCashType/>
+		<MainSubType/>
+		<CCUserName>hs123</CCUserName>
+		<CCUserPassWord>201</CCUserPassWord>
+		<保留/>
+	</MsgHdr>
+	<MsgPack>
+		<PayBranchCode/>
+		<AreaCode/>
+		<MoneyType>01</MoneyType>
+		<PayAcco>9901020000000009</PayAcco>
+		<QryBegDate>20190813</QryBegDate>
+		<QryEndDate>20190813</QryEndDate>
+		<MinBala>0.01</MinBala>
+		<MaxBala>2147483647.00</MaxBala>
+		<LoanDirect>0</LoanDirect>
+		<MainAcco>9901020000000009</MainAcco>
+		<SubAccoNo/>
+		<CityNo/>
+	</MsgPack>
+</MsgText>
