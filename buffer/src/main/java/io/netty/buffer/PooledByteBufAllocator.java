@@ -140,7 +140,7 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
     }
 
     public static final PooledByteBufAllocator DEFAULT =
-            new PooledByteBufAllocator(PlatformDependent.directBufferPreferred());
+            new PooledByteBufAllocator(PlatformDependent.directBufferPreferred());//是否使用direct对外内存分配
 
     private final PoolArena<byte[]>[] heapArenas;
     private final PoolArena<ByteBuffer>[] directArenas;

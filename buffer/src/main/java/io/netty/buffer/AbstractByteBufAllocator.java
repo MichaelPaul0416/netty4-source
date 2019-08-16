@@ -101,7 +101,7 @@ public abstract class AbstractByteBufAllocator implements ByteBufAllocator {
 
     @Override
     public ByteBuf buffer() {
-        if (directByDefault) {
+        if (directByDefault) {//构造器中指定，是否使用对外内存
             return directBuffer();
         }
         return heapBuffer();
@@ -149,7 +149,7 @@ public abstract class AbstractByteBufAllocator implements ByteBufAllocator {
 
     @Override
     public ByteBuf heapBuffer() {
-        return heapBuffer(DEFAULT_INITIAL_CAPACITY, DEFAULT_MAX_CAPACITY);
+        return heapBuffer(DEFAULT_INITIAL_CAPACITY, DEFAULT_MAX_CAPACITY);//指定初始化的容量大小以及默认的最大值
     }
 
     @Override

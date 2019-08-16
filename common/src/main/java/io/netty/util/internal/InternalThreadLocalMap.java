@@ -83,7 +83,7 @@ public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap
     }
 
     private static InternalThreadLocalMap slowGet() {
-        ThreadLocal<InternalThreadLocalMap> slowThreadLocalMap = UnpaddedInternalThreadLocalMap.slowThreadLocalMap;
+        ThreadLocal<InternalThreadLocalMap> slowThreadLocalMap = UnpaddedInternalThreadLocalMap.slowThreadLocalMap;//父类中的ThreadLocal
         InternalThreadLocalMap ret = slowThreadLocalMap.get();
         if (ret == null) {
             ret = new InternalThreadLocalMap();
