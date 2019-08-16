@@ -11,5 +11,12 @@
 
     <artifactId>server-tools</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tool-core</artifactId>
+            <version>4.1.31.Final-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 
 </project>
