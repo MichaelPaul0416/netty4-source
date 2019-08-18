@@ -18,21 +18,23 @@ public class TcpClientFromPool {
 
     private static final Logger logger = LoggerFactory.getLogger(TcpClientFromPool.class);
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         ClientChannel<StringProtocol> clientChannel =
-                new DefaultClientChannel(5,3);
-        clientChannel.submit("helloworld$",new CallBackProcessor<StringProtocol>() {
-            private String uuid = DefaultStringCallbackSelector.generatorUuid();
+                new DefaultClientChannel(5, 3);
+        for (int i = 0; i < 5; i++) {
+            clientChannel.submit("HelloWold-" + i + "$", new CallBackProcessor<StringProtocol>() {
+                private String uuid = DefaultStringCallbackSelector.generatorUuid();
 
-            @Override
-            public void process(StringProtocol param) {
-                logger.info("callback message : {}",(String)param.getProtocolBody());
-            }
+                @Override
+                public void process(StringProtocol param) {
+                    logger.info("callback message : {}", (String) param.getProtocolBody());
+                }
 
-            @Override
-            public String uuid() {
-                return uuid;
-            }
-        });
+                @Override
+                public String uuid() {
+                    return uuid;
+                }
+            });
+        }
     }
 }
