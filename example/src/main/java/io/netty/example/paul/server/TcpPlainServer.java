@@ -80,7 +80,7 @@ public class TcpPlainServer {
     }
 
     public static void main(String[] args){
-        TcpPlainServer server = new TcpPlainServer(2,16,'$');
+        TcpPlainServer server = new TcpPlainServer(8,16,'$');
         server.init();
         server.start(8080);
     }

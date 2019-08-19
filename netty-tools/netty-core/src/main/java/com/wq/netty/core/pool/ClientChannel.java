@@ -11,4 +11,6 @@ import com.wq.netty.core.proto.AbstractProtocol;
 public interface ClientChannel<T extends AbstractProtocol> {
 
     boolean submit(Object param,CallBackProcessor<T> processor);
+
+    boolean shutdownGracefully();
 }

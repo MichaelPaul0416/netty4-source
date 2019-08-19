@@ -11,6 +11,25 @@ import java.io.Serializable;
 public class PoolParam<T extends Serializable> {
     private String uuid;
 
+    private int channelId;
+
+    public int getChannelId() {
+        return channelId;
+    }
+
+    public void setChannelId(int channelId) {
+        this.channelId = channelId;
+    }
+
+    @Override
+    public String toString() {
+        return "PoolParam{" +
+                "uuid='" + uuid + '\'' +
+                ", channelId=" + channelId +
+                ", message=" + message +
+                '}';
+    }
+
     private T message;
 
     public String getUuid() {
@@ -29,11 +48,4 @@ public class PoolParam<T extends Serializable> {
         this.message = message;
     }
 
-    @Override
-    public String toString() {
-        return "PoolParam{" +
-                "uuid='" + uuid + '\'' +
-                ", message=" + message +
-                '}';
-    }
 }
