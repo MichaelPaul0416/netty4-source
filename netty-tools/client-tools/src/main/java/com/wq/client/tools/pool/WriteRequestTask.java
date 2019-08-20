@@ -18,12 +18,12 @@ public class WriteRequestTask extends RequestTask {
 
     private Object sendParam;
 
-    public WriteRequestTask(String taskId, int channelId, Object param,ChannelFutureListener... futureListener) {
+    public WriteRequestTask(String taskId, int channelId, Object param,List<ChannelFutureListener> futureListener) {
         super(taskId, channelId);
         this.sendParam = param;
 
         if (futureListener != null) {
-            this.futureListeners = Arrays.asList(futureListener);
+            this.futureListeners = futureListener;
         }else {
             this.futureListeners = null;
         }
@@ -43,5 +43,14 @@ public class WriteRequestTask extends RequestTask {
     @Override
     protected List<ChannelFutureListener> futureListeners() {
         return this.futureListeners;
+    }
+
+    @Override
+    public String toString() {
+        return "WriteRequestTask{" +
+                "sendParam=" + sendParam +
+                ", taskId='" + taskId + '\'' +
+                ", channelId=" + channelId +
+                "} " + super.toString();
     }
 }

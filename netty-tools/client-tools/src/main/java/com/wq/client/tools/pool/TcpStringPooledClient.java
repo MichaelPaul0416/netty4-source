@@ -23,7 +23,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.LockSupport;
 
 
 /**
@@ -55,6 +57,10 @@ public class TcpStringPooledClient implements PooledClient {
     private final Thread backThread;
 
     private volatile boolean stop = false;
+
+    private volatile boolean startedBack = false;
+
+    private static final int MAX_WAITER = 100;
 
     private static class NettyClient {
         private final Bootstrap bootstrap;
@@ -145,14 +151,16 @@ public class TcpStringPooledClient implements PooledClient {
         this.workerCounter = new Semaphore(size);
 
         //初始化大小定为size的大小 * 2
-        this.writeTaskQueue = new LinkedBlockingQueue<>(size >> 1);
+        this.writeTaskQueue = new LinkedBlockingQueue<>(MAX_WAITER);
         this.backThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 TcpStringPooledClient.this.runTask();
             }
         });
-        this.startBackThread();
+        this.backThread.setPriority(Thread.NORM_PRIORITY);
+        this.backThread.setDaemon(false);
+        this.backThread.setName("asyn-take-worker");
     }
 
     /**
@@ -160,48 +168,97 @@ public class TcpStringPooledClient implements PooledClient {
      * 同时，它需要与asynWriteChannel方法并发竞争writerCounter这个信号量
      */
     private void runTask() {
+        WriteRequestTask task;
         for (; ; ) {
             if (this.stop) {
                 logger.info("shutdownNow signal...stop this pool");
                 return;
             }
 
-            WriteRequestTask task;
-            try {
-                task = this.writeTaskQueue.take();
-            } catch (InterruptedException e) {
-                //获取中断状态并且清除
-                logger.error("interrupted and it's state:[{}]", Thread.interrupted(), e);
-                continue;
+            //所有的channel都在初始化，并且队列中有任务提交了，那现在就不获取,阻塞挂起，等初始化完成了，发起一个通知
+            if (this.semaphore.availablePermits() == 0 && this.writeTaskQueue.size() > 0) {
+                LockSupport.park(Thread.currentThread());
+                if(Thread.interrupted()){
+                    logger.warn("back thread interrupted and wake up...");
+                    continue;
+                }
             }
 
+            /**
+             * 代码能走到这里，说明已经channel已经被构建好了
+             */
+            boolean getToken = false;
             try {
-                //此时task肯定不是null,然后去获取令牌
-                if (this.getWriteToken()) {
+                if (!this.getWriteToken()) {
+                    continue;
+                }
 
-                    Channel channel = this.pooledChannel[task.getChannelId()];
-                    ChannelFuture channelFuture = channel.writeAndFlush(task.requestParam());
-                    List<ChannelFutureListener> listeners = task.futureListeners();
-                    if (listeners != null) {
-                        for (ChannelFutureListener listener : listeners) {
-                            channelFuture.addListener(listener);
-                        }
+                //从这里开始其实是获取到token了
+                getToken = true;
+                try {
+                    logger.info("task-size:{}",this.writeTaskQueue.size());
+                    //如果队列为空，那么就阻塞在这一行，直到队列不为空，也就是有任务提交
+                    task = this.writeTaskQueue.take();
+                } catch (InterruptedException e) {
+                    //获取中断状态并且清除
+                    logger.error("interrupted and it's state:[{}]", Thread.interrupted(), e);
+                    continue;
+                }
+
+
+                Channel channel = this.pooledChannel[task.getChannelId()];
+                /**
+                 * 这个逻辑执行的情况就是，一开始所有的channel都在初始化，然后后续进来三个任务，那么分配到的channel其实就是index=0，1，2的channel
+                 * 然后channel-2初始化完毕，唤醒了park的backThread，然后代码就能做到这里，但是this.writeTaskQueue.take()返回的其实是index=0的channel对应的任务
+                 * 然后去获取index=0的channel，如果此时channel-0还没连接上，那么就会进入下面这段逻辑
+                 */
+                if (channel == null) {
+                    logger.info("request[{}] channel's index[{}] has not been initialized completely wait a moment", task.requestParam(),task.getChannelId());
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(100);
+                    } catch (InterruptedException e) {
+                        logger.error("等待通道连接完成异常...");
                     }
+//                    this.safeReleaseToken();
+                    //这里会和asynWriteChannel方法中的offer发生竞争
+                    this.writeTaskQueue.offer(task);
+                    continue;
+                }
 
+                //channel not empty
+                doTask(task, channel);
+                logger.info("后台发送[{}]", task);
+
+//                this.safeReleaseToken();
+
+            } catch (Exception e) {
+                logger.error("task发送数据异常:{}", e.getMessage(), e);
+            }finally {
+                if (getToken){
                     this.safeReleaseToken();
                 }
-            } catch (Exception e) {
-                logger.error("task[{}]发送数据异常:{}", task.taskId(), e.getMessage(), e);
+            }
+        }
+    }
+
+    private void doTask(WriteRequestTask task, Channel channel) {
+        ChannelFuture channelFuture = channel.writeAndFlush(task.requestParam());
+        List<ChannelFutureListener> listeners = task.futureListeners();
+        if (listeners != null) {
+            for (ChannelFutureListener listener : listeners) {
+                channelFuture.addListener(listener);
             }
         }
     }
 
     private void startBackThread() {
-        this.backThread.setPriority(Thread.NORM_PRIORITY);
-        this.backThread.setDaemon(false);
-        this.backThread.setName("asyn-take-worker");
-
-        this.backThread.start();
+        synchronized (this) {
+            if (this.startedBack) {
+                return;
+            }
+            this.startedBack = true;
+            this.backThread.start();
+        }
     }
 
 
@@ -252,6 +309,10 @@ public class TcpStringPooledClient implements PooledClient {
         InetSocketAddress socketAddress = new InetSocketAddress(address, port);
 
         Channel channel = this.nettyClient.connect(socketAddress);
+        if(channel != null){
+            //唤醒runTask
+            LockSupport.unpark(this.backThread);
+        }
         this.safeReleaseChannel();
 
         if (channel == null) {
@@ -310,6 +371,10 @@ public class TcpStringPooledClient implements PooledClient {
         //channel initializing
         if (channel == null) {
             logger.info("channel initializing...and register task");
+            if (!this.startedBack) {
+                logger.info("start back thread for calling asyn task...");
+                this.startBackThread();
+            }
             offerTask(poolParam, listeners);
             return;
 
@@ -323,7 +388,7 @@ public class TcpStringPooledClient implements PooledClient {
                     channelFuture.addListener(listener);
                 }
             }
-
+            logger.info("直接发送[{}]", poolParam);
             this.safeReleaseToken();
         } else {
             logger.info("all channel are busy and this request[{}] will offer to queue...", poolParam.getUuid());
@@ -333,10 +398,9 @@ public class TcpStringPooledClient implements PooledClient {
 
     private void offerTask(PoolParam poolParam, ChannelFutureListener[] listeners) {
         boolean ok =
-                this.writeTaskQueue.offer(new WriteRequestTask(poolParam.getUuid(), poolParam.getChannelId(), Arrays.asList(listeners)));
-
+                this.writeTaskQueue.offer(new WriteRequestTask(poolParam.getUuid(), poolParam.getChannelId(), poolParam, Arrays.asList(listeners)));
         if (!ok) {
-            throw new IllegalStateException("将当前请求[" + poolParam.getUuid() + "]放入等待队列失败...");
+            throw new IllegalStateException("队列已满，将当前请求[" + poolParam.getUuid() + "]放入等待队列失败...");
         }
     }
 }
