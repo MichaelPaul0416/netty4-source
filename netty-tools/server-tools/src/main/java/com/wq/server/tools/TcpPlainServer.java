@@ -2,6 +2,8 @@ package com.wq.server.tools;
 
 import com.wq.netty.core.BatchXmlDecoder;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
@@ -9,6 +11,8 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,8 +88,8 @@ public class TcpPlainServer implements CommonServer {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         socketChannel.pipeline()
-//                                .addLast(new StringDecoder())
-                                .addLast(new BatchXmlDecoder("GB2312",-1))
+                                .addLast(new StringDecoder())
+//                                .addLast(new BatchXmlDecoder("GB2312",-1))
                                 .addLast(new StringEncoder())
                                 .addLast(new BatchMessageSplitHandler());
                     }

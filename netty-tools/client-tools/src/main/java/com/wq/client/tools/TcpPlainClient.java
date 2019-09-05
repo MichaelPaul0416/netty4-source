@@ -29,6 +29,9 @@ import java.util.concurrent.TimeUnit;
  * @Resource:
  */
 public class TcpPlainClient {
+    /**
+     * netty的client真正发送数据的线程和真正接受数据的线程一定是同一个
+     */
 
     private static final Logger logger = LoggerFactory.getLogger(TcpPlainClient.class);
 
@@ -73,7 +76,7 @@ public class TcpPlainClient {
                     protected void initChannel(SocketChannel ch) throws Exception {
                         ch.pipeline()
 //                                .addLast(new LineBasedFrameDecoder(100))
-                                .addLast(new BatchXmlDecoder("GB2312", 4))
+//                                .addLast(new BatchXmlDecoder("GB2312", 4))
                                 .addLast(new StringDecoder())
                                 .addLast(new StringEncoder(Charset.forName("GB2312")))
                                 .addLast(client);
@@ -204,7 +207,7 @@ public class TcpPlainClient {
 
 
     public static void main(String[] args) {
-        TcpPlainClient client = new TcpPlainClient("localhost", 6650, 10000 * 1000, "UTF-8");
+        TcpPlainClient client = new TcpPlainClient("localhost", 8080, 10000 * 1000, "UTF-8");
         client.start();
         String xml = client.loadResource("request.txt");
         Object result = client.sendSync(xml, 1);
