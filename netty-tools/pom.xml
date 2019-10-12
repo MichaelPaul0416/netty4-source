@@ -15,6 +15,7 @@
         <module>client-tools</module>
         <module>netty-core</module>
         <module>server-tools</module>
+        <module>byte-cache-pool</module>
     </modules>
 
     <dependencies>
