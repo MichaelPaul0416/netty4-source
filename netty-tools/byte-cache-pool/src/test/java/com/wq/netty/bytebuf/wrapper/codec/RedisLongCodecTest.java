@@ -19,7 +19,7 @@ public class RedisLongCodecTest {
         ByteBuf buf = Unpooled.buffer();
         buf.writeByte(AbstractRedisDataCodec.NUMBER_LONG);
 
-        buf.writeByte(AbstractRedisDataCodec.NEGATIVE_CODE);
+//        buf.writeByte(AbstractRedisDataCodec.NEGATIVE_CODE);
         buf.writeBytes("12345".getBytes(AbstractRedisDataCodec.CHARSET));
         buf.writeBytes(AbstractRedisDataCodec.REDIS_CRLF);
 

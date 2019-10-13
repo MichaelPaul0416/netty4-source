@@ -59,8 +59,9 @@ public abstract class AbstractRedisDataCodec<T extends Serializable> implements 
      * @return
      */
     protected String fixLengthDecode(ByteBuf buf) {
+        int startRead = buf.readerIndex();
         ByteBuf byteBuf = buf;
-        if (byteBuf.getByte(0) != FIX_LENGTH_STRING) {
+        if (byteBuf.getByte(startRead) != FIX_LENGTH_STRING) {
             throwCodeHeadException(new String(new byte[]{FIX_LENGTH_STRING}));
         }
 
@@ -76,11 +77,11 @@ public abstract class AbstractRedisDataCodec<T extends Serializable> implements 
 
         // not null
         // read length field
-        start = ByteBufCodecUtil.findCodeIndex(byteBuf, REDIS_CR);
-        byte[] lengthByte = new byte[start - 1];
+        int index = ByteBufCodecUtil.findCodeIndex(byteBuf, REDIS_CR);
+        byte[] lengthByte = new byte[index - 1];
         byteBuf.readBytes(lengthByte);// length
 
-        int length = fixStringLength(lengthByte,byteBuf,start);
+        int length = fixStringLength(lengthByte,byteBuf,index);
         if(length < 0){
             return null;
         }
@@ -90,7 +91,7 @@ public abstract class AbstractRedisDataCodec<T extends Serializable> implements 
 
         try {
             String msg = new String(msgBytes, CHARSET);
-            byteBuf.readBytes(2);
+            byteBuf.readBytes(REDIS_CRLF.length);
             return msg;
         } catch (UnsupportedEncodingException e) {
             logger.error(e.getLocalizedMessage(), e);
@@ -101,7 +102,7 @@ public abstract class AbstractRedisDataCodec<T extends Serializable> implements 
 
     private int fixStringLength(byte[] lengthByte,ByteBuf byteBuf,int start){
         long length = getLongFromBytes(lengthByte);
-        byteBuf.readBytes(2);
+        byteBuf.readBytes(REDIS_CRLF.length);
 
         int end = ByteBufCodecUtil.findCodeIndex(byteBuf, REDIS_CR);
         if (end < 0) {
@@ -125,7 +126,8 @@ public abstract class AbstractRedisDataCodec<T extends Serializable> implements 
 
 
     protected Long decodeLong(ByteBuf buf) {
-        if (buf.getByte(0) != NUMBER_LONG) {
+        int start = buf.readerIndex();
+        if (buf.getByte(start) != NUMBER_LONG) {
             throwCodeHeadException(new String(new byte[]{NUMBER_LONG}));
         }
 
@@ -139,10 +141,12 @@ public abstract class AbstractRedisDataCodec<T extends Serializable> implements 
 
         byteBuf.readByte();
         boolean negative = false;
-        if (NEGATIVE_CODE == byteBuf.readByte()) {
+        // getByte(int index) 返回的是ByteBuf容器中 下标为i的字节,而不是从readIndex开始,是从0开始
+        if (NEGATIVE_CODE == byteBuf.getByte(start + 1)) {
+            byteBuf.readByte();// strip negative code
             negative = true;
         }
-        byte[] bytes = buildContainer(endIndex, byteBuf, negative);
+        byte[] bytes = buildContainer(endIndex, negative);
 
         byteBuf.readBytes(bytes);
 
@@ -154,7 +158,7 @@ public abstract class AbstractRedisDataCodec<T extends Serializable> implements 
         return negative ? -result : result;
     }
 
-    private long getLongFromBytes(byte[] bytes) {
+    protected long getLongFromBytes(byte[] bytes) {
         long result = 0L;
         for (byte code : bytes) {
             result = result * 10 + (code - '0');
@@ -162,18 +166,20 @@ public abstract class AbstractRedisDataCodec<T extends Serializable> implements 
         return result;
     }
 
-    private byte[] buildContainer(int endIndex, ByteBuf byteBuf, boolean negative) {
+    private byte[] buildContainer(int endIndex,boolean negative) {
 
         int length = negative ? endIndex - 2 : endIndex - 1;
         return new byte[length];
     }
 
     protected void throwCodeHeadException(String code) {
-        throw new IllegalArgumentException("illegal bytebuf content, and plain string must start with '" + code + "'");
+        throw new IllegalArgumentException("illegal byte buf content, and response string must start with '" + code + "'");
     }
 
     protected String decodePlainString(ByteBuf buf, byte type) {
-        if (buf.getByte(0) != type) {
+        // deal start with read index
+        int start  = buf.readerIndex();
+        if (buf.getByte(start) != type) {
             throwCodeHeadException(new String(new byte[]{type}));
         }
 
