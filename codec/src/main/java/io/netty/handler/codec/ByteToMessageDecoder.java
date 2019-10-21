@@ -422,7 +422,7 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
             while (in.isReadable()) {
                 int outSize = out.size();
 
-                if (outSize > 0) {
+                if (outSize > 0) {// 此时已经有解码出来的对象了，业务线程可以先消费
                     fireChannelRead(ctx, out, outSize);
                     out.clear();
 

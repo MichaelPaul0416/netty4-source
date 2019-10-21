@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 
+import static org.junit.Assert.assertEquals;
+
 public class RedisSimpleStringCodecTest {
 
     private RedisDataTypeCodec redisDataTypeCodec = new RedisSimpleStringCodec();
@@ -23,6 +25,13 @@ public class RedisSimpleStringCodecTest {
 
         String info = (String) redisDataTypeCodec.decode(buf);
         logger.info(info);
+    }
+
+    @Test
+    public void codec() {
+        ByteBuf buf = redisDataTypeCodec.encode("helloworld");
+        String info = (String) redisDataTypeCodec.decode(buf);
+        assertEquals("helloworld",info);
     }
 
 }

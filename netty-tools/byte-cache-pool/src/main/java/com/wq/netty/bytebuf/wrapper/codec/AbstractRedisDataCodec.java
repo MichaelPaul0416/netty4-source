@@ -2,6 +2,8 @@ package com.wq.netty.bytebuf.wrapper.codec;
 
 import com.wq.netty.bytebuf.wrapper.core.RedisException;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.util.internal.StringUtil;
 import io.netty.util.internal.TypeParameterMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,6 +116,7 @@ public abstract class AbstractRedisDataCodec<T extends Serializable> implements 
 
         return (int) length;
     }
+
     private void checkContentLength(int start, long length, int end) {
         if (length != (end - start - REDIS_CRLF.length)) {
             throw new RedisException("length field:" + length + ",but receive data length:" + end);
@@ -206,6 +209,23 @@ public abstract class AbstractRedisDataCodec<T extends Serializable> implements 
             logger.error(e.getLocalizedMessage(), e);
         }
         return null;
+    }
+
+    protected ByteBuf encodeString(String value){
+        if(StringUtil.isNullOrEmpty(value)){
+            throw new RedisException("empty encoding string");
+        }
+
+        ByteBuf buf = Unpooled.buffer();
+        try {
+            buf.writeBytes(value.getBytes(CHARSET));
+        } catch (UnsupportedEncodingException e) {
+            // ignore
+            logger.error(e.getLocalizedMessage(),e);
+            return null;
+        }
+
+        return buf;
     }
 
 }

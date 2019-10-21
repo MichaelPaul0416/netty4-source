@@ -1,5 +1,6 @@
 package com.wq.netty.bytebuf.wrapper.codec;
 
+import com.wq.netty.bytebuf.wrapper.core.RedisException;
 import io.netty.buffer.ByteBuf;
 
 public class RedisFixLengthCodec extends AbstractRedisDataCodec<String> {
@@ -11,6 +12,6 @@ public class RedisFixLengthCodec extends AbstractRedisDataCodec<String> {
 
     @Override
     protected ByteBuf doEncode(String s) {
-        return null;
+        throw new RedisException("redisCodec can't support fixed string encode...");
     }
 }

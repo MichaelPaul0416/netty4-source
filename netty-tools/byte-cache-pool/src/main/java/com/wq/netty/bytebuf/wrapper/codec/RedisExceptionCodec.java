@@ -17,6 +17,6 @@ public class RedisExceptionCodec extends AbstractRedisDataCodec<RuntimeException
 
     @Override
     protected ByteBuf doEncode(RuntimeException e) {
-        return null;
+        throw new RedisException("redisCodec can't support Exception encode...");
     }
 }

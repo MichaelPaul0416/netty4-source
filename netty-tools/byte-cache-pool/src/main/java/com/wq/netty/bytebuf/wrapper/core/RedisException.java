@@ -13,4 +13,6 @@ public class RedisException extends RuntimeException {
     public RedisException(String msg,Throwable e){
         super(msg,e);
     }
+
+    public static final String TIMEOUT_RESULT = "wait time out for result";
 }

@@ -1,6 +1,7 @@
 package com.wq.netty.bytebuf.wrapper.codec;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +16,9 @@ public class RedisSimpleStringCodec extends AbstractRedisDataCodec<String>{
 
     @Override
     protected ByteBuf doEncode(String s) {
-        return null;
+        ByteBuf buf = Unpooled.buffer();
+        buf.writeBytes(super.encodeString(s));
+        buf.writeBytes(AbstractRedisDataCodec.REDIS_CRLF);
+        return buf;
     }
 }

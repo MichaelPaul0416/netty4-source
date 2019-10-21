@@ -88,6 +88,9 @@ public class RedisArrayCodec extends AbstractRedisDataCodec<RedisArrayCodec.Inne
         // empty array
         if (byteBuf.getByte(1) == '0') {
             logger.info("empty array");
+            // set index to \r\n
+            // 因为这里是empty数组，所以剩余的三个字节一定是0\r\n
+            byteBuf.readBytes(3);
             return new InnerList<>(0);
         }
 
@@ -128,8 +131,7 @@ public class RedisArrayCodec extends AbstractRedisDataCodec<RedisArrayCodec.Inne
 
     @Override
     protected ByteBuf doEncode(InnerList<Object> objectInnerList) {
-
-        return null;
+        throw new RedisException("redisCodec can't support array encode...");
     }
 
     private byte determine(ByteBuf buf) {

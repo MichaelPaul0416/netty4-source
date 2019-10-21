@@ -16,6 +16,7 @@
         <module>netty-tool-core</module>
         <module>server-tools</module>
         <module>byte-cache-pool</module>
+        <module>redis-client</module>
     </modules>
 
     <dependencies>
