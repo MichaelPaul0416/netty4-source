@@ -48,7 +48,7 @@ public class UnpooledHeapByteBuf extends AbstractReferenceCountedByteBuf {
      * @param maxCapacity the max capacity of the underlying byte array
      */
     public UnpooledHeapByteBuf(ByteBufAllocator alloc, int initialCapacity, int maxCapacity) {
-        super(maxCapacity);
+        super(maxCapacity);// just set maxCapacity for AbstractByteBuf
 
         checkNotNull(alloc, "alloc");
 

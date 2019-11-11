@@ -283,7 +283,7 @@ public abstract class AbstractByteBuf extends ByteBuf {
         if (minWritableBytes <= writableBytes()) {
             return;
         }
-        if (checkBounds) {
+        if (checkBounds) {// 希望写入的数据长度，在checkBounds为true的情况下，大于剩余的可写入的字节数，所以直接报错
             if (minWritableBytes > maxCapacity - writerIndex) {
                 throw new IndexOutOfBoundsException(String.format(
                         "writerIndex(%d) + minWritableBytes(%d) exceeds maxCapacity(%d): %s",
@@ -1074,7 +1074,7 @@ public abstract class AbstractByteBuf extends ByteBuf {
 
     @Override
     public ByteBuf writeBytes(byte[] src) {
-        writeBytes(src, 0, src.length);
+        writeBytes(src, 0, src.length);// target bytes,startIndex,length
         return this;
     }
 

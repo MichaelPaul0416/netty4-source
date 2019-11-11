@@ -140,7 +140,7 @@ public final class UnpooledByteBufAllocator extends AbstractByteBufAllocator imp
         }
 
         @Override
-        protected byte[] allocateArray(int initialCapacity) {
+        protected byte[] allocateArray(int initialCapacity) {// 重写UnpooledHeadByteBuf#allocateArray的方法
             byte[] bytes = super.allocateArray(initialCapacity);
             ((UnpooledByteBufAllocator) alloc()).incrementHeap(bytes.length);
             return bytes;

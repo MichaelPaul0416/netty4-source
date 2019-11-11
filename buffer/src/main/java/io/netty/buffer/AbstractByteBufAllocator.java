@@ -162,7 +162,7 @@ public abstract class AbstractByteBufAllocator implements ByteBufAllocator {
         if (initialCapacity == 0 && maxCapacity == 0) {
             return emptyBuf;
         }
-        validate(initialCapacity, maxCapacity);
+        validate(initialCapacity, maxCapacity);// default maxCapacity is Integer.MAX_VALUE
         return newHeapBuffer(initialCapacity, maxCapacity);
     }
 
@@ -264,9 +264,9 @@ public abstract class AbstractByteBufAllocator implements ByteBufAllocator {
         }
 
         // If over threshold, do not double but just increase by threshold.
-        if (minNewCapacity > threshold) {
-            int newCapacity = minNewCapacity / threshold * threshold;
-            if (newCapacity > maxCapacity - threshold) {
+        if (minNewCapacity > threshold) {// 当新数据写入之后(writerIndex + length)，大于阀值的话，就需要进行扩容
+            int newCapacity = minNewCapacity / threshold * threshold;// 找到一个离minNewCapacity最近的threshold整数倍的数字
+            if (newCapacity > maxCapacity - threshold) {// 至少需要保证一个threshold的空间
                 newCapacity = maxCapacity;
             } else {
                 newCapacity += threshold;

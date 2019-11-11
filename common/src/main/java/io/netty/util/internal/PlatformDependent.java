@@ -277,7 +277,7 @@ public final class PlatformDependent {
      * {@code -Dio.netty.noPreferDirect} option.
      */
     public static boolean directBufferPreferred() {
-        return DIRECT_BUFFER_PREFERRED;
+        return DIRECT_BUFFER_PREFERRED;// io.netty.noPreferDirect 配置为true，并且Cleaner不为空
     }
 
     /**
@@ -986,7 +986,7 @@ public final class PlatformDependent {
             logger.debug("sun.misc.Unsafe: unavailable (Android)");
             return new UnsupportedOperationException("sun.misc.Unsafe: unavailable (Android)");
         }
-        Throwable cause = PlatformDependent0.getUnsafeUnavailabilityCause();
+        Throwable cause = PlatformDependent0.getUnsafeUnavailabilityCause();// 获取Unsafe获取不到的原因
         if (cause != null) {
             return cause;
         }

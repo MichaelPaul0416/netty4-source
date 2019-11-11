@@ -114,7 +114,7 @@ public final class Unpooled {
      * {@code writerIndex} are {@code 0}.
      */
     public static ByteBuf buffer(int initialCapacity) {
-        return ALLOC.heapBuffer(initialCapacity);
+        return ALLOC.heapBuffer(initialCapacity);// 返回的类型[UnsafeHeapByteBuf/HeapByteBuf]
     }
 
     /**
