@@ -92,7 +92,7 @@ final class PlatformDependent0 {
                             return cause;
                         }
                         // the unsafe instance
-                        return unsafeField.get(null);
+                        return unsafeField.get(null);//获取Unsafe中的实例对象
                     } catch (NoSuchFieldException e) {
                         return e;
                     } catch (SecurityException e) {
@@ -111,7 +111,7 @@ final class PlatformDependent0 {
             // is an instanceof Unsafe and reversing the if and else blocks; this is because an
             // instanceof check against Unsafe will trigger a class load and we might not have
             // the runtime permission accessClassInPackage.sun.misc
-            if (maybeUnsafe instanceof Throwable) {
+            if (maybeUnsafe instanceof Throwable) {// 返回Throwable的话，说明获取不到Unsafe
                 unsafe = null;
                 unsafeUnavailabilityCause = (Throwable) maybeUnsafe;
                 logger.debug("sun.misc.Unsafe.theUnsafe: unavailable", (Throwable) maybeUnsafe);
@@ -129,7 +129,7 @@ final class PlatformDependent0 {
                     @Override
                     public Object run() {
                         try {
-                            finalUnsafe.getClass().getDeclaredMethod(
+                            finalUnsafe.getClass().getDeclaredMethod(// 确保能解决openJDK中的该方法的错误
                                     "copyMemory", Object.class, long.class, Object.class, long.class, long.class);
                             return null;
                         } catch (NoSuchMethodException e) {
@@ -144,7 +144,7 @@ final class PlatformDependent0 {
                     logger.debug("sun.misc.Unsafe.copyMemory: available");
                 } else {
                     // Unsafe.copyMemory(Object, long, Object, long, long) unavailable.
-                    unsafe = null;
+                    unsafe = null;// 上述方法出错的话，说明unsafe还是不可用的，需要返回异常，也就是说最终的PlatformDependent#hasUnsafe=false
                     unsafeUnavailabilityCause = (Throwable) maybeException;
                     logger.debug("sun.misc.Unsafe.copyMemory: unavailable", (Throwable) maybeException);
                 }
