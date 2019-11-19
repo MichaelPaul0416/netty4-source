@@ -533,7 +533,7 @@ final class UnsafeByteBufUtil {
     static void setBytes(AbstractByteBuf buf, long addr, int index, byte[] src, int srcIndex, int length) {
         buf.checkIndex(index, length);
         if (length != 0) {
-            PlatformDependent.copyMemory(src, srcIndex, addr, length);
+            PlatformDependent.copyMemory(src, srcIndex, addr, length);// 将src中从srcIndex开始的length数据，复制到内存地址addr开始的连续内存块中，长度也是length
         }
     }
 

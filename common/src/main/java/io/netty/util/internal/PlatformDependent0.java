@@ -219,6 +219,9 @@ final class PlatformDependent0 {
                             @Override
                             public Object run() {
                                 try {
+                                    // 最终调用到的其实就是DirectByteBuffer(long,int)构造器，注释上有这么一句话
+                                    // Invoked only by JNI: NewDirectByteBuffer(void*, long)
+                                    // 并且这个构造器是私有的，也就是说，只会被JNI调用实例化，所以本质上还是交给了JNI去直接使用堆外内存direct memory
                                     final Constructor<?> constructor =
                                             direct.getClass().getDeclaredConstructor(long.class, int.class);
                                     Throwable cause = ReflectionUtil.trySetAccessible(constructor, true);
@@ -442,14 +445,14 @@ final class PlatformDependent0 {
     }
 
     static ByteBuffer reallocateDirectNoCleaner(ByteBuffer buffer, int capacity) {
-        return newDirectBuffer(UNSAFE.reallocateMemory(directBufferAddress(buffer), capacity), capacity);
+        return newDirectBuffer(UNSAFE.reallocateMemory(directBufferAddress(buffer), capacity), capacity);// 将旧的DirectByteBuffer.address返回，同时重新申请一个新capacity容量的内存，返回新的开始地址，然后将旧的内存地址中的数据复制到新的内存地址中
     }
 
     static ByteBuffer allocateDirectNoCleaner(int capacity) {
         // Calling malloc with capacity of 0 may return a null ptr or a memory address that can be used.
         // Just use 1 to make it safe to use in all cases:
         // See: http://pubs.opengroup.org/onlinepubs/009695399/functions/malloc.html
-        return newDirectBuffer(UNSAFE.allocateMemory(Math.max(1, capacity)), capacity);
+        return newDirectBuffer(UNSAFE.allocateMemory(Math.max(1, capacity)), capacity);// 使用jdk提供的Unsafe进行内存的申请
     }
 
     static boolean hasAllocateArrayMethod() {
@@ -470,7 +473,7 @@ final class PlatformDependent0 {
         ObjectUtil.checkPositiveOrZero(capacity, "capacity");
 
         try {
-            return (ByteBuffer) DIRECT_BUFFER_CONSTRUCTOR.newInstance(address, capacity);
+            return (ByteBuffer) DIRECT_BUFFER_CONSTRUCTOR.newInstance(address, capacity);// 调用ByteBuffer(long,int)的构造器，构造一个ByteBuffer对象
         } catch (Throwable cause) {
             // Not expected to ever throw!
             if (cause instanceof Error) {
@@ -481,7 +484,7 @@ final class PlatformDependent0 {
     }
 
     static long directBufferAddress(ByteBuffer buffer) {
-        return getLong(buffer, ADDRESS_FIELD_OFFSET);
+        return getLong(buffer, ADDRESS_FIELD_OFFSET);// address字段在ByteBuffer中的偏移量，这个方法返回的是对象buffer中，指定偏移量上的值
     }
 
     static long byteArrayBaseOffset() {
@@ -537,7 +540,7 @@ final class PlatformDependent0 {
     }
 
     static void putByte(long address, byte value) {
-        UNSAFE.putByte(address, value);
+        UNSAFE.putByte(address, value);// 使用Unsafe将内存地址为address的值设置为value
     }
 
     static void putShort(long address, short value) {

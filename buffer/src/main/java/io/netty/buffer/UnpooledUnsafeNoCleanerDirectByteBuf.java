@@ -27,7 +27,7 @@ class UnpooledUnsafeNoCleanerDirectByteBuf extends UnpooledUnsafeDirectByteBuf {
 
     @Override
     protected ByteBuffer allocateDirect(int initialCapacity) {
-        return PlatformDependent.allocateDirectNoCleaner(initialCapacity);
+        return PlatformDependent.allocateDirectNoCleaner(initialCapacity);// 依赖于JDK提供的ByteBuffer
     }
 
     ByteBuffer reallocateDirect(ByteBuffer oldBuffer, int initialCapacity) {
@@ -41,14 +41,14 @@ class UnpooledUnsafeNoCleanerDirectByteBuf extends UnpooledUnsafeDirectByteBuf {
 
     @Override
     public ByteBuf capacity(int newCapacity) {
-        checkNewCapacity(newCapacity);
+        checkNewCapacity(newCapacity);// 如果是大小<4M,那么最小的扩容大小是64，然后64 <<= 1的倍数来扩容
 
         int oldCapacity = capacity();
         if (newCapacity == oldCapacity) {
             return this;
         }
 
-        ByteBuffer newBuffer = reallocateDirect(buffer, newCapacity);
+        ByteBuffer newBuffer = reallocateDirect(buffer, newCapacity);// 扩容directByteBuffer的时候，需要重新申请
 
         if (newCapacity < oldCapacity) {
             if (readerIndex() < newCapacity) {

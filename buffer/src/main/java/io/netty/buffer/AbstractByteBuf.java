@@ -1066,8 +1066,8 @@ public abstract class AbstractByteBuf extends ByteBuf {
 
     @Override
     public ByteBuf writeBytes(byte[] src, int srcIndex, int length) {
-        ensureWritable(length);
-        setBytes(writerIndex, src, srcIndex, length);
+        ensureWritable(length);// 这一步完成扩容，如果是堆外内存的话，完成堆外内存的重新申请并将旧数据复制到新申请的堆外内存中
+        setBytes(writerIndex, src, srcIndex, length);// 将src中的数据写入到新申请的堆外内存中
         writerIndex += length;
         return this;
     }

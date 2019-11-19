@@ -68,13 +68,13 @@ public final class UnpooledByteBufAllocator extends AbstractByteBufAllocator imp
      *                            allocator. This can be useful if the user just want to depend on the GC to handle
      *                            direct buffers when not explicit released.
      * @param tryNoCleaner {@code true} if we should try to use {@link PlatformDependent#allocateDirectNoCleaner(int)}
-     *                            to allocate direct memory.
+     *                            to allocate direct memory.[想要使用PlatformDependent#allocateDirectNoCleaner进行direct memory的使用，那么这个值就为true]
      */
     public UnpooledByteBufAllocator(boolean preferDirect, boolean disableLeakDetector, boolean tryNoCleaner) {
         super(preferDirect);
         this.disableLeakDetector = disableLeakDetector;
         noCleaner = tryNoCleaner && PlatformDependent.hasUnsafe()
-                && PlatformDependent.hasDirectBufferNoCleanerConstructor();
+                && PlatformDependent.hasDirectBufferNoCleanerConstructor();// ByteBuffer是否有DirectByteBuffer(long,int)的私有构造器
     }
 
     @Override
@@ -176,22 +176,27 @@ public final class UnpooledByteBufAllocator extends AbstractByteBufAllocator imp
 
     private static final class InstrumentedUnpooledUnsafeNoCleanerDirectByteBuf
             extends UnpooledUnsafeNoCleanerDirectByteBuf {
-        InstrumentedUnpooledUnsafeNoCleanerDirectByteBuf(
+        InstrumentedUnpooledUnsafeNoCleanerDirectByteBuf(// 带有Instrumented的一般就是带有计数功能的ByteBuf
                 UnpooledByteBufAllocator alloc, int initialCapacity, int maxCapacity) {
-            super(alloc, initialCapacity, maxCapacity);
+            super(alloc, initialCapacity, maxCapacity);// 会在UnpooledUnsafeDirectByteBuf的构造器中，调用allocateDirect方法构造数据容器
         }
 
+        /**
+         * 当前方法一般属于父类UnPooledDirectByteBuf的方法，一般是在父类的构造器(new UnpooledDirectByteBuf)或者扩容(capacity)的时候被调用
+         * @param initialCapacity
+         * @return
+         */
         @Override
         protected ByteBuffer allocateDirect(int initialCapacity) {
             ByteBuffer buffer = super.allocateDirect(initialCapacity);
-            ((UnpooledByteBufAllocator) alloc()).incrementDirect(buffer.capacity());
+            ((UnpooledByteBufAllocator) alloc()).incrementDirect(buffer.capacity());// 记录申请下来的ByteBuffer的capacity
             return buffer;
         }
 
         @Override
         ByteBuffer reallocateDirect(ByteBuffer oldBuffer, int initialCapacity) {
             int capacity = oldBuffer.capacity();
-            ByteBuffer buffer = super.reallocateDirect(oldBuffer, initialCapacity);
+            ByteBuffer buffer = super.reallocateDirect(oldBuffer, initialCapacity);// 返回的是一个新的DirectByteBuffer
             ((UnpooledByteBufAllocator) alloc()).incrementDirect(buffer.capacity() - capacity);
             return buffer;
         }

@@ -605,10 +605,10 @@ public final class PlatformDependent {
      * Allocate a new {@link ByteBuffer} with the given {@code capacity}. {@link ByteBuffer}s allocated with
      * this method <strong>MUST</strong> be deallocated via {@link #freeDirectNoCleaner(ByteBuffer)}.
      */
-    public static ByteBuffer allocateDirectNoCleaner(int capacity) {
+    public static ByteBuffer allocateDirectNoCleaner(int capacity) {// 使用该方法申请内存之后，必须使用freeDirectNoCleaner进行内存的释放
         assert USE_DIRECT_BUFFER_NO_CLEANER;
 
-        incrementMemoryCounter(capacity);
+        incrementMemoryCounter(capacity);// 使用AtomicLong进行记录当前内存的使用大小
         try {
             return PlatformDependent0.allocateDirectNoCleaner(capacity);
         } catch (Throwable e) {
@@ -626,7 +626,7 @@ public final class PlatformDependent {
         assert USE_DIRECT_BUFFER_NO_CLEANER;
 
         int len = capacity - buffer.capacity();
-        incrementMemoryCounter(len);
+        incrementMemoryCounter(len);// 将大小调整至新容量capacity的大小
         try {
             return PlatformDependent0.reallocateDirectNoCleaner(buffer, capacity);
         } catch (Throwable e) {

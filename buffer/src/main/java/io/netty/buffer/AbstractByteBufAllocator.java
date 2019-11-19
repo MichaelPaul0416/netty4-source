@@ -277,7 +277,7 @@ public abstract class AbstractByteBufAllocator implements ByteBufAllocator {
         // Not over threshold. Double up to 4 MiB, starting from 64.
         int newCapacity = 64;
         while (newCapacity < minNewCapacity) {
-            newCapacity <<= 1;
+            newCapacity <<= 1;// 小于4M的时候，按照64的2倍进度开始扩容
         }
 
         return Math.min(newCapacity, maxCapacity);

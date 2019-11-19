@@ -23,18 +23,34 @@ public class ByteBufAllocatorExample {
 //        Unpooled.compositeBuffer();
 
         // 操作堆上分配的ByteBuf
-        ByteBuf heap = Unpooled.buffer(10);
-        heap.writeBytes(new byte[16]);
-        System.out.println(heap.capacity());
-
-        capacity();
+//        ByteBuf heap = Unpooled.buffer(10);
+//        heap.writeBytes(new byte[16]);
+//        System.out.println(heap.capacity());
+//
+//        capacity();
         // 非池化的ByteBuf申请接口
         /**
          * PooledByteBufAllocator
          */
+
+        // direct
+        unPooledDirectByteBuf();
     }
 
-    private static void capacity(){
+    private static void unPooledDirectByteBuf() {
+        ByteBuf direct = Unpooled.directBuffer(10);// 实际内部对象是DirectByteBuffer实现，由Jdk管理，内部维护一个address字段，代表申请的堆外内存的开始地址，由于是一大片连续的地址，所以address+offset代表的就是申请的堆外内存中的某一个地址
+        direct.writeByte('a');// 将char -> int -> byte写入
+        direct.writeByte(1);// 写入的是int，但是最终会将int -> byte写入到ByteBuf中
+        System.out.println(direct);
+        byte[] tmp = new byte[10];
+        for (int i = 0; i < tmp.length; i++) {
+            tmp[i] = (byte) ('A' + i);
+        }
+        direct.writeBytes(tmp);
+        System.out.println(direct);
+    }
+
+    private static void capacity() {
         ByteBuf byteBuf = Unpooled.buffer(20);
         byte[] bytes = new byte[20];
         bytes[8] = 1;

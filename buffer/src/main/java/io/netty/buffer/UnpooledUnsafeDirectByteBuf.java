@@ -65,7 +65,7 @@ public class UnpooledUnsafeDirectByteBuf extends AbstractReferenceCountedByteBuf
         }
 
         this.alloc = alloc;
-        setByteBuffer(allocateDirect(initialCapacity), false);
+        setByteBuffer(allocateDirect(initialCapacity), false);// allocateDirect方法一般是子类实现
     }
 
     /**
@@ -139,7 +139,7 @@ public class UnpooledUnsafeDirectByteBuf extends AbstractReferenceCountedByteBuf
             }
         }
         this.buffer = buffer;
-        memoryAddress = PlatformDependent.directBufferAddress(buffer);
+        memoryAddress = PlatformDependent.directBufferAddress(buffer);// 返回DirectByteBuffer对象中address字段的值
         tmpNioBuf = null;
         capacity = buffer.remaining();
     }
@@ -299,7 +299,7 @@ public class UnpooledUnsafeDirectByteBuf extends AbstractReferenceCountedByteBuf
 
     @Override
     protected void _setByte(int index, int value) {
-        UnsafeByteBufUtil.setByte(addr(index), value);
+        UnsafeByteBufUtil.setByte(addr(index), value);// 将DirectByteBuffer中address字段代表的内存地址(这个地址也就是申请的capacity的内存地址的开始地址)向后偏移index(index < capacity)的内存地址的值设置为value
     }
 
     @Override
@@ -503,7 +503,7 @@ public class UnpooledUnsafeDirectByteBuf extends AbstractReferenceCountedByteBuf
     }
 
     long addr(int index) {
-        return memoryAddress + index;
+        return memoryAddress + index;// memoryAddress就是DirectBuffer对象中address字段在这个实例对象中的内存地址
     }
 
     @Override
