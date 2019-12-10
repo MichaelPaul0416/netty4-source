@@ -77,7 +77,7 @@ final class PlatformDependent0 {
             unsafe = null;
             internalUnsafe = null;
         } else {
-            direct = ByteBuffer.allocateDirect(1);
+            direct = ByteBuffer.allocateDirect(1);// 试申请一个字节的堆外内存，用于测试
 
             // attempt to access field Unsafe#theUnsafe
             final Object maybeUnsafe = AccessController.doPrivileged(new PrivilegedAction<Object>() {
@@ -141,7 +141,7 @@ final class PlatformDependent0 {
                 });
 
                 if (maybeException == null) {
-                    logger.debug("sun.misc.Unsafe.copyMemory: available");
+                    logger.debug("sun.misc.Unsafe.copyMemory: available");// openJDK中的unsafe存在该方法
                 } else {
                     // Unsafe.copyMemory(Object, long, Object, long, long) unavailable.
                     unsafe = null;// 上述方法出错的话，说明unsafe还是不可用的，需要返回异常，也就是说最终的PlatformDependent#hasUnsafe=false
@@ -158,7 +158,7 @@ final class PlatformDependent0 {
                     @Override
                     public Object run() {
                         try {
-                            final Field field = Buffer.class.getDeclaredField("address");
+                            final Field field = Buffer.class.getDeclaredField("address");// 为了获取Buffer中的address字段的offset以及对应的值
                             // Use Unsafe to read value of the address field. This way it will not fail on JDK9+ which
                             // will forbid changing the access level via reflection.
                             final long offset = finalUnsafe.objectFieldOffset(field);
@@ -181,6 +181,7 @@ final class PlatformDependent0 {
                     addressField = (Field) maybeAddressField;
                     logger.debug("java.nio.Buffer.address: available");
                 } else {
+                    // Buffer中的address为null，也就是说无法直接操作堆外内存
                     unsafeUnavailabilityCause = (Throwable) maybeAddressField;
                     logger.debug("java.nio.Buffer.address: unavailable", (Throwable) maybeAddressField);
 
@@ -241,7 +242,7 @@ final class PlatformDependent0 {
                     address = UNSAFE.allocateMemory(1);
                     // try to use the constructor now
                     try {
-                        ((Constructor<?>) maybeDirectBufferConstructor).newInstance(address, 1);
+                        ((Constructor<?>) maybeDirectBufferConstructor).newInstance(address, 1);// 申请1个字节的堆外内存
                         directBufferConstructor = (Constructor<?>) maybeDirectBufferConstructor;
                         logger.debug("direct buffer constructor: available");
                     } catch (InstantiationException e) {
