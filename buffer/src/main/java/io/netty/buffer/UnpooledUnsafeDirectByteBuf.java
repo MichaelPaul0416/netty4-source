@@ -49,6 +49,7 @@ public class UnpooledUnsafeDirectByteBuf extends AbstractReferenceCountedByteBuf
      * @param maxCapacity     the maximum capacity of the underlying direct buffer
      */
     public UnpooledUnsafeDirectByteBuf(ByteBufAllocator alloc, int initialCapacity, int maxCapacity) {
+        // 在AbstractByteBuf中检验并且设置最大的容量
         super(maxCapacity);
         if (alloc == null) {
             throw new NullPointerException("alloc");
@@ -64,7 +65,7 @@ public class UnpooledUnsafeDirectByteBuf extends AbstractReferenceCountedByteBuf
                     "initialCapacity(%d) > maxCapacity(%d)", initialCapacity, maxCapacity));
         }
 
-        this.alloc = alloc;
+        this.alloc = alloc;// 保存Allocator的引用
         setByteBuffer(allocateDirect(initialCapacity), false);// allocateDirect方法一般是子类实现
     }
 

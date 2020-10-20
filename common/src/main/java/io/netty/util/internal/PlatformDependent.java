@@ -649,6 +649,7 @@ public final class PlatformDependent {
     }
 
     private static void incrementMemoryCounter(int capacity) {
+        // 记录当前已经申请的内存容量
         if (DIRECT_MEMORY_COUNTER != null) {
             for (;;) {
                 long usedMemory = DIRECT_MEMORY_COUNTER.get();
@@ -993,6 +994,7 @@ public final class PlatformDependent {
         }
 
         try {
+            // PlatformDependent0#getUnsafeUnavailiabilityCause方法返回为null的话这里就是true
             boolean hasUnsafe = PlatformDependent0.hasUnsafe();
             logger.debug("sun.misc.Unsafe: {}", hasUnsafe ? "available" : "unavailable");
             return hasUnsafe ? null : PlatformDependent0.getUnsafeUnavailabilityCause();

@@ -88,11 +88,13 @@ public final class UnpooledByteBufAllocator extends AbstractByteBufAllocator imp
     protected ByteBuf newDirectBuffer(int initialCapacity, int maxCapacity) {
         final ByteBuf buf;
         if (PlatformDependent.hasUnsafe()) {// check whether support unsafe on this platform or not
+            // 区别在于是否有Cleaner
             buf = noCleaner ? new InstrumentedUnpooledUnsafeNoCleanerDirectByteBuf(this, initialCapacity, maxCapacity) :
                     new InstrumentedUnpooledUnsafeDirectByteBuf(this, initialCapacity, maxCapacity);
         } else {
             buf = new InstrumentedUnpooledDirectByteBuf(this, initialCapacity, maxCapacity);
         }
+        // 如果需要泄露探测的话，就进一步装饰
         return disableLeakDetector ? buf : toLeakAwareBuffer(buf);
     }
 
@@ -176,6 +178,7 @@ public final class UnpooledByteBufAllocator extends AbstractByteBufAllocator imp
 
     private static final class InstrumentedUnpooledUnsafeNoCleanerDirectByteBuf
             extends UnpooledUnsafeNoCleanerDirectByteBuf {
+        // 这是一个ByteBuf，具体还是要依赖Allocator进行构造
         InstrumentedUnpooledUnsafeNoCleanerDirectByteBuf(// 带有Instrumented的一般就是带有计数功能的ByteBuf
                 UnpooledByteBufAllocator alloc, int initialCapacity, int maxCapacity) {
             super(alloc, initialCapacity, maxCapacity);// 会在UnpooledUnsafeDirectByteBuf的构造器中，调用allocateDirect方法构造数据容器
@@ -188,7 +191,7 @@ public final class UnpooledByteBufAllocator extends AbstractByteBufAllocator imp
          */
         @Override
         protected ByteBuffer allocateDirect(int initialCapacity) {
-            ByteBuffer buffer = super.allocateDirect(initialCapacity);
+            ByteBuffer buffer = super.allocateDirect(initialCapacity);//封装了直接内存的内存地址以及容量
             ((UnpooledByteBufAllocator) alloc()).incrementDirect(buffer.capacity());// 记录申请下来的ByteBuffer的capacity
             return buffer;
         }

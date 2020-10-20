@@ -71,7 +71,7 @@ final class PlatformDependent0 {
         Unsafe unsafe;
         Object internalUnsafe = null;
 
-        if ((unsafeUnavailabilityCause = EXPLICIT_NO_UNSAFE_CAUSE) != null) {
+        if ((unsafeUnavailabilityCause = EXPLICIT_NO_UNSAFE_CAUSE) != null) {// 类加载时检测出来有unsafe不能使用而抛出的异常
             direct = null;
             addressField = null;
             unsafe = null;
@@ -158,7 +158,10 @@ final class PlatformDependent0 {
                     @Override
                     public Object run() {
                         try {
-                            final Field field = Buffer.class.getDeclaredField("address");// 为了获取Buffer中的address字段的offset以及对应的值
+                            // 为了获取Buffer中的address字段的offset以及对应的值
+                            // 同时DirectBuffer是Buffer的子类,下面这个做的目的就是先获取DirectByteBuffer实例的address的偏移量，然后根据偏移量获取对象对应的值
+                            // 因为在Buffer类中说明了address字段只给direct buffers使用
+                            final Field field = Buffer.class.getDeclaredField("address");
                             // Use Unsafe to read value of the address field. This way it will not fail on JDK9+ which
                             // will forbid changing the access level via reflection.
                             final long offset = finalUnsafe.objectFieldOffset(field);
@@ -202,6 +205,7 @@ final class PlatformDependent0 {
                 }
             }
         }
+        // 经过上述一系列检测，这个地方如果为null说明是支持unsafe的，不为null的话就是不支持，存在异常
         UNSAFE_UNAVAILABILITY_CAUSE = unsafeUnavailabilityCause;
         UNSAFE = unsafe;
 
@@ -398,6 +402,7 @@ final class PlatformDependent0 {
         final boolean noUnsafe = SystemPropertyUtil.getBoolean("io.netty.noUnsafe", false);
         logger.debug("-Dio.netty.noUnsafe: {}", noUnsafe);
 
+        // 检查netty启动时，是否允许没有unsafe时报错，配置为true代表需要报错
         if (noUnsafe) {
             logger.debug("sun.misc.Unsafe: unavailable (io.netty.noUnsafe)");
             return new UnsupportedOperationException("sun.misc.Unsafe: unavailable (io.netty.noUnsafe)");
@@ -453,6 +458,7 @@ final class PlatformDependent0 {
         // Calling malloc with capacity of 0 may return a null ptr or a memory address that can be used.
         // Just use 1 to make it safe to use in all cases:
         // See: http://pubs.opengroup.org/onlinepubs/009695399/functions/malloc.html
+        // 如果capacity是0的话，那就取最大的1,UNSAFE.allocateMemory返回申请的直接内存的地址
         return newDirectBuffer(UNSAFE.allocateMemory(Math.max(1, capacity)), capacity);// 使用jdk提供的Unsafe进行内存的申请
     }
 
@@ -474,7 +480,8 @@ final class PlatformDependent0 {
         ObjectUtil.checkPositiveOrZero(capacity, "capacity");
 
         try {
-            return (ByteBuffer) DIRECT_BUFFER_CONSTRUCTOR.newInstance(address, capacity);// 调用ByteBuffer(long,int)的构造器，构造一个ByteBuffer对象
+            // 调用ByteBuffer(long,int)的构造器，构造一个ByteBuffer对象，记录direct byte buffer的内存信息和容量
+            return (ByteBuffer) DIRECT_BUFFER_CONSTRUCTOR.newInstance(address, capacity);
         } catch (Throwable cause) {
             // Not expected to ever throw!
             if (cause instanceof Error) {
