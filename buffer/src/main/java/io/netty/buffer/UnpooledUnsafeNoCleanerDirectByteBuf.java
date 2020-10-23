@@ -56,12 +56,16 @@ class UnpooledUnsafeNoCleanerDirectByteBuf extends UnpooledUnsafeDirectByteBuf {
         if (newCapacity < oldCapacity) {
             if (readerIndex() < newCapacity) {
                 if (writerIndex() > newCapacity) {
+                    // 如果readIndex小于新的容量，并且writeIndex大于新的容量，那么就只需要将writeIndex设置为新的容量即可
+                    // readIndex<newCapacity && writeIndex<=newCapacity的情况，就不需要调整索引位置
                     writerIndex(newCapacity);
                 }
             } else {
+                // readIndex>=newCapacity，那就相当于数据已经全部读取完毕了，此时只需要将readIndex和writeIndex全部设置为newCapacity即可
                 setIndex(newCapacity, newCapacity);
             }
         }
+        // 当前实例对象内部持有一个ByteBuffer对象的引用
         setByteBuffer(newBuffer, false);
         return this;
     }

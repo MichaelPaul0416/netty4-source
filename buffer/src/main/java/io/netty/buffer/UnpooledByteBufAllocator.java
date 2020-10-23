@@ -176,6 +176,9 @@ public final class UnpooledByteBufAllocator extends AbstractByteBufAllocator imp
         }
     }
 
+    /**
+     * 委托{@link ByteBufAllocatorMetric}对申请的堆外内存进行计数
+     */
     private static final class InstrumentedUnpooledUnsafeNoCleanerDirectByteBuf
             extends UnpooledUnsafeNoCleanerDirectByteBuf {
         // 这是一个ByteBuf，具体还是要依赖Allocator进行构造
@@ -192,6 +195,9 @@ public final class UnpooledByteBufAllocator extends AbstractByteBufAllocator imp
         @Override
         protected ByteBuffer allocateDirect(int initialCapacity) {
             ByteBuffer buffer = super.allocateDirect(initialCapacity);//封装了直接内存的内存地址以及容量
+            /**
+             * 使用{@link ByteBufAllocatorMetric}记录当前申请器{@link ByteBufAllocator}申请的总内存数
+             */
             ((UnpooledByteBufAllocator) alloc()).incrementDirect(buffer.capacity());// 记录申请下来的ByteBuffer的capacity
             return buffer;
         }

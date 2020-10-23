@@ -481,6 +481,9 @@ final class PlatformDependent0 {
 
         try {
             // 调用ByteBuffer(long,int)的构造器，构造一个ByteBuffer对象，记录direct byte buffer的内存信息和容量
+            /**
+             * {@link java.nio.DirectByteBuffer#cleaner} 为null，实际上NoCleaner是指最终的DirectByteBuffer的cleaner=null
+             */
             return (ByteBuffer) DIRECT_BUFFER_CONSTRUCTOR.newInstance(address, capacity);
         } catch (Throwable cause) {
             // Not expected to ever throw!
