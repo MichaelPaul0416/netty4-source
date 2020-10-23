@@ -84,6 +84,11 @@ public class UnpooledHeapByteBuf extends AbstractReferenceCountedByteBuf {
         setIndex(0, initialArray.length);
     }
 
+    /**
+     * 根据容量申请一个空的byte数组
+     * @param initialCapacity
+     * @return
+     */
     protected byte[] allocateArray(int initialCapacity) {
         return new byte[initialCapacity];
     }

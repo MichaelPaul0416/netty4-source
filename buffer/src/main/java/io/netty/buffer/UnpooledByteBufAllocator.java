@@ -151,6 +151,7 @@ public final class UnpooledByteBufAllocator extends AbstractByteBufAllocator imp
         @Override
         protected void freeArray(byte[] array) {
             int length = array.length;
+            // UnpooledUnsafeHeapByteBuf#freeArray do nothing
             super.freeArray(array);
             ((UnpooledByteBufAllocator) alloc()).decrementHeap(length);
         }

@@ -466,6 +466,11 @@ final class PlatformDependent0 {
         return ALLOCATE_ARRAY_METHOD != null;
     }
 
+    /**
+     * java9新特性，通过unsafe获取数组
+     * @param size
+     * @return
+     */
     static byte[] allocateUninitializedArray(int size) {
         try {
             return (byte[]) ALLOCATE_ARRAY_METHOD.invoke(INTERNAL_UNSAFE, byte.class, size);

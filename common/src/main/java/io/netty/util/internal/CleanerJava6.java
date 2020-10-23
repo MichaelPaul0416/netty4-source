@@ -49,6 +49,7 @@ final class CleanerJava6 implements Cleaner {
                 @Override
                 public Object run() {
                     try {
+                        // 获取DirectByteBuffer的成员变量cleaner
                         Field cleanerField =  direct.getClass().getDeclaredField("cleaner");
                         if (!PlatformDependent.hasUnsafe()) {
                             // We need to make it accessible if we do not use Unsafe as we will access it via
@@ -72,7 +73,9 @@ final class CleanerJava6 implements Cleaner {
             // If we have sun.misc.Unsafe we will use it as its faster then using reflection,
             // otherwise let us try reflection as last resort.
             if (PlatformDependent.hasUnsafe()) {
+                // 获取cleaner这个成员变量在对象里面的偏移量
                 fieldOffset = PlatformDependent0.objectFieldOffset(cleanerField);
+                // 通过反射获取cleaner对象的值
                 cleaner = PlatformDependent0.getObject(direct, fieldOffset);
             } else {
                 fieldOffset = -1;
@@ -145,6 +148,9 @@ final class CleanerJava6 implements Cleaner {
             cleaner = PlatformDependent0.getObject(buffer, CLEANER_FIELD_OFFSET);
         }
         if (cleaner != null) {
+            /**
+             * 执行{@link sun.misc.Cleaner#clean()}方法
+             */
             CLEAN_METHOD.invoke(cleaner);
         }
     }

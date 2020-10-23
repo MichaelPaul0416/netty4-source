@@ -200,6 +200,11 @@ public final class PlatformDependent {
         return PlatformDependent0.hasDirectBufferNoCleanerConstructor();
     }
 
+    /**
+     * 如果jdk版本&lt;9的话，就直接通过new byte[]构造，否则通过unsafe构造
+     * @param size
+     * @return
+     */
     public static byte[] allocateUninitializedArray(int size) {
         return UNINITIALIZED_ARRAY_ALLOCATION_THRESHOLD < 0 || UNINITIALIZED_ARRAY_ALLOCATION_THRESHOLD > size ?
                 new byte[size] : PlatformDependent0.allocateUninitializedArray(size);

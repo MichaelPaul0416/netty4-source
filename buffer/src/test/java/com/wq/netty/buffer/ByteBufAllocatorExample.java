@@ -34,7 +34,10 @@ public class ByteBufAllocatorExample {
          */
 
         // direct
-        unPooledDirectByteBuf();
+//        unPooledDirectByteBuf();
+
+        // heap no pooled
+        unPooledHeapByteBuf();
     }
 
     private static void unPooledDirectByteBuf() {
@@ -48,6 +51,10 @@ public class ByteBufAllocatorExample {
         }
         direct.writeBytes(tmp);
         System.out.println(direct);
+    }
+
+    private static void unPooledHeapByteBuf(){
+        ByteBuf buf = Unpooled.buffer();
     }
 
     private static void capacity() {
