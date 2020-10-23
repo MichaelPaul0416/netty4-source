@@ -116,6 +116,7 @@ public class UnpooledUnsafeDirectByteBuf extends AbstractReferenceCountedByteBuf
 
     /**
      * Allocate a new direct {@link ByteBuffer} with the given initialCapacity.
+     * 直接通过{@link ByteBuffer#allocateDirect(int)}申请堆外内存，并且返回{@link java.nio.DirectByteBuffer}自带了一个{@link sun.misc.Cleaner}
      */
     protected ByteBuffer allocateDirect(int initialCapacity) {
         return ByteBuffer.allocateDirect(initialCapacity);
@@ -140,7 +141,8 @@ public class UnpooledUnsafeDirectByteBuf extends AbstractReferenceCountedByteBuf
             }
         }
         this.buffer = buffer;
-        memoryAddress = PlatformDependent.directBufferAddress(buffer);// 返回DirectByteBuffer对象中address字段的值
+        // 设置这个堆外内存buffer在堆外的内存地址
+        memoryAddress = PlatformDependent.directBufferAddress(buffer);
         tmpNioBuf = null;
         capacity = buffer.remaining();
     }
